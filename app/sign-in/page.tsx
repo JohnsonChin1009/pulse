@@ -12,7 +12,7 @@ export default function SignInPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 sm:px-8 md:px-16 py-10 bg-white">
-      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl space-y-16">
+      <div className="w-full max-w-sm md:max-w-lg lg:max-w-xl space-y-16">
         <div className="space-y-3 justify-start">
           <h1 className="font-headline text-3xl sm:text-4xl">Welcome Back!</h1>
           <p className="font-main font-medium">
@@ -39,8 +39,8 @@ export default function SignInPage() {
         <div className="flex justify-center">
           <Button
             variant="outline"
-            onClick={() => handleGoogleOauthLogin}
-            className="w-full max-w-s rounded-md gap-2"
+            onClick={handleGoogleOauthLogin}
+            className="w-full rounded-xl max-w-xs gap-2 p-5"
           >
             <FcGoogle size={20} />
             Google
