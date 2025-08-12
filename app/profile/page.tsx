@@ -63,15 +63,15 @@ export default function ProfilePage() {
             </div>
             <div className="flex gap-10 items-center justify-center text-center">
               <div className="flex flex-col space-y-1">
-                <h3 className="font-main font-bold text-sm">Highest Lvl.</h3>
+                <h3 className="font-main font-bold text-md">Highest Lvl.</h3>
                 <p>52</p>
               </div>
               <div className="flex flex-col space-y-1">
-                <h3 className="font-main font-bold text-sm">Score</h3>
+                <h3 className="font-main font-bold text-md">Score</h3>
                 <p>5505</p>
               </div>
               <div className="flex flex-col space-y-1">
-                <h3 className="font-main font-bold text-sm">Achievements</h3>
+                <h3 className="font-main font-bold text-md">Achievements</h3>
                 <p>{achievements.length}</p>
               </div>
             </div>
