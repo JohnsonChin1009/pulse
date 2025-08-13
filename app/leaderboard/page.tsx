@@ -20,7 +20,7 @@ export default function LeaderboardPage() {
       <h1 className="text-center font-headline text-xl">Leaderboard</h1>
 
       {/* Toggle Button */}
-      <div className="bg-white rounded-full p-1 w-[220px] mx-auto flex">
+      <div className="bg-white rounded-full p-1 w-full mx-auto flex">
         {["Weekly", "All Time"].map((option) => (
           <button
             key={option}
