@@ -1,9 +1,9 @@
-import AdminNavigator from "@/components/admin/navigator";
+
 
 export default function dashboard(){
     return (
         <div>
-            <AdminNavigator />
+            <p> Testing 123</p>
         </div>
     )
 }

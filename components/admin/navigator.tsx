@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -22,6 +23,7 @@ import {
   Trophy,
   FileText,
   Heart,
+  ChevronDown,
 } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
@@ -35,11 +37,11 @@ const navItems = [
 ]
 
 const mobileShelfItems = [...navItems, { href: "/admin/forum", label: "Forum", icon: MessageCircle }]
-
 const bottomNavItems = navItems
 
 export default function AdminHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const pathname = usePathname()
 
   return (
     <>
@@ -57,11 +59,16 @@ export default function AdminHeader() {
         <nav className="flex items-center gap-1">
           {mobileShelfItems.map((item) => {
             const Icon = item.icon
+            const isActive = pathname === item.href
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-2 px-6 py-3 text-gray-600 hover:text-[#F5BE66] hover:bg-gray-50 font-montserrat font-medium transition-all duration-200 rounded-2xl"
+                className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-montserrat font-medium transition-all duration-200 ${
+                  isActive
+                    ? "text-[#F5BE66] bg-gray-50"
+                    : "text-gray-600 hover:text-[#F5BE66] hover:bg-gray-50"
+                }`}
               >
                 <Icon className="w-4 h-4" />
                 {item.label}
@@ -74,7 +81,8 @@ export default function AdminHeader() {
         <div className="flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl">
+              {/* Profile Button Section */}
+              <Button variant="ghost" className="flex items-center gap-3 p-3 rounded-2xl w-50 h-12">
                 <Avatar className="w-9 h-9">
                   <AvatarImage src="/placeholder.svg?height=36&width=36" />
                   <AvatarFallback className="bg-[#F5BE66] text-white font-semibold">AD</AvatarFallback>
@@ -82,7 +90,9 @@ export default function AdminHeader() {
                 <div className="text-left">
                   <p className="font-montserrat font-semibold text-sm">Admin</p>
                 </div>
+                <ChevronDown className="w-4 h-4 text-gray-600" />
               </Button>
+
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 rounded-2xl border-gray-100">
               <DropdownMenuItem className="rounded-xl">
@@ -104,11 +114,11 @@ export default function AdminHeader() {
       </header>
 
       {/* Mobile Header */}
-        <header
-            className={`md:hidden bg-[#F5BE66] sticky top-0 z-50 py-2 rounded-b-[2rem] shadow-lg 
-                transition-all duration-500 ease-in-out overflow-hidden
-                ${isMobileMenuOpen ? "h-227" : "h-22"}`}
-        >
+      <header
+        className={`md:hidden bg-[#F5BE66] sticky top-0 z-50 py-2 rounded-b-[2rem] shadow-lg 
+          transition-all duration-500 ease-in-out overflow-hidden
+          ${isMobileMenuOpen ? "h-227" : "h-22"}`}
+      >
         <div className="flex items-center justify-between px-6 py-4 pb-6">
           <div className="flex items-center gap-3">
             <Avatar className="w-12 h-12 border-2 border-white/30">
@@ -146,14 +156,23 @@ export default function AdminHeader() {
               <nav className="px-6 py-6 space-y-2">
                 {mobileShelfItems.map((item) => {
                   const Icon = item.icon
+                  const isActive = pathname === item.href
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-[#F5BE66] hover:bg-[#F5BE66]/10 rounded-2xl font-montserrat font-medium transition-all duration-200"
+                      className={`flex items-center gap-4 px-4 py-4 rounded-2xl font-montserrat font-medium transition-all duration-200 ${
+                        isActive
+                          ? "text-[#F5BE66] bg-[#F5BE66]/10"
+                          : "text-gray-700 hover:text-[#F5BE66] hover:bg-[#F5BE66]/10"
+                      }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <div className="w-10 h-10 bg-[#F5BE66]/10 rounded-2xl flex items-center justify-center">
+                      <div
+                        className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                          isActive ? "bg-[#F5BE66]/20" : "bg-[#F5BE66]/10"
+                        }`}
+                      >
                         <Icon className="w-5 h-5" />
                       </div>
                       {item.label}
@@ -175,7 +194,11 @@ export default function AdminHeader() {
 
                 <Link
                   href="/admin/profile"
-                  className="flex items-center gap-4 px-4 py-4 text-gray-700 hover:text-[#F5BE66] hover:bg-[#F5BE66]/10 rounded-2xl font-montserrat font-medium transition-all duration-200"
+                  className={`flex items-center gap-4 px-4 py-4 rounded-2xl font-montserrat font-medium transition-all duration-200 ${
+                    pathname === "/admin/profile"
+                      ? "text-[#F5BE66] bg-[#F5BE66]/10"
+                      : "text-gray-700 hover:text-[#F5BE66] hover:bg-[#F5BE66]/10"
+                  }`}
                 >
                   <div className="w-10 h-10 bg-gray-100 rounded-2xl flex items-center justify-center">
                     <User className="w-5 h-5" />
@@ -195,7 +218,7 @@ export default function AdminHeader() {
         </AnimatePresence>
       </header>
 
-
+      {/* Mobile Bottom Nav */}
       <AnimatePresence>
         {!isMobileMenuOpen && (
           <motion.nav
@@ -207,9 +230,9 @@ export default function AdminHeader() {
             className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50 rounded-t-3xl shadow-lg"
           >
             <div className="flex items-center justify-around py-2 px-4">
-              {bottomNavItems.map((item, index) => {
+              {bottomNavItems.map((item) => {
                 const Icon = item.icon
-                const isActive = index === 0
+                const isActive = pathname === item.href
                 return (
                   <Link
                     key={item.href}
