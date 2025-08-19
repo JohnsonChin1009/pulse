@@ -3,7 +3,7 @@
 export default function dashboard(){
     return (
         <div>
-            <p> Testing 123</p>
+            <p> This is admin dashboard, user and health practitioner go away hehehe </p>
         </div>
     )
 }

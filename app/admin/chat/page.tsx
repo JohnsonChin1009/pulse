@@ -120,7 +120,7 @@ export default function LiveChatPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto md:mb-0 mb-25">
+    <div className="p-6 max-w-7xl mx-auto pb-25 md:pb-0">
       <div className="mb-6">
         <h1 className="font-montserrat font-bold text-3xl text-gray-900 mb-2">Live Chat</h1>
       </div>
@@ -227,7 +227,7 @@ export default function LiveChatPage() {
             className={`
               md:w-96 border-l border-gray-200 flex flex-col bg-white 
               md:static md:translate-x-0 transition-transform duration-300
-              fixed top-0 left-0 h-full w-80 z-50
+              fixed top-0 left-0 h-full w-80 z-50 md:z-20
               ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
             `}
           >
