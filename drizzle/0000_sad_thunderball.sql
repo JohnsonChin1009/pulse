@@ -28,6 +28,20 @@ CREATE TABLE "forums" (
 	"created_at" timestamp with time zone DEFAULT now()
 );
 
+CREATE TABLE "oauth_accounts" (
+	"user_id" uuid NOT NULL,
+	"provider" varchar(50) NOT NULL,
+	"provider_account_id" varchar(255) NOT NULL,
+	"access_token" varchar(1024),
+	"refresh_token" varchar(1024),
+	"scope" varchar(512),
+	"token_type" varchar(50),
+	"expires_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now(),
+	"updated_at" timestamp with time zone DEFAULT now(),
+	CONSTRAINT "oauth_accounts_provider_provider_account_id_pk" PRIMARY KEY("provider","provider_account_id")
+);
+
 CREATE TABLE "pets" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"pet_name" varchar(256) NOT NULL,
@@ -42,14 +56,13 @@ CREATE TABLE "users" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"username" varchar(256) NOT NULL,
 	"email" varchar(256) NOT NULL,
-	"password" varchar(256) NOT NULL,
+	"password" varchar(256),
 	"profile_picture_url" text,
 	"role" varchar(20) DEFAULT 'user' NOT NULL,
 	"gender" varchar(10),
 	"is_verified" boolean DEFAULT false,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now(),
-	CONSTRAINT "users_username_unique" UNIQUE("username"),
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 
@@ -58,4 +71,5 @@ ALTER TABLE "forum_comments" ADD CONSTRAINT "forum_comments_user_id_users_id_fk"
 ALTER TABLE "forum_posts" ADD CONSTRAINT "forum_posts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "forum_posts" ADD CONSTRAINT "forum_posts_forum_id_forums_id_fk" FOREIGN KEY ("forum_id") REFERENCES "public"."forums"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "forums" ADD CONSTRAINT "forums_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "oauth_accounts" ADD CONSTRAINT "oauth_accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "pets" ADD CONSTRAINT "pets_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
