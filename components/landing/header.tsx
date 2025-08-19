@@ -42,7 +42,7 @@ export function Header() {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-[#F5BE66] rounded-full flex items-center justify-center">
-              <Heart className="w-5 h-5 text-white font-bold" />
+              <Heart className="w-5 h-5 text-white" />
             </div>
             <span className="font-montserrat font-bold text-xl text-gray-900">Pulse</span>
           </div>
