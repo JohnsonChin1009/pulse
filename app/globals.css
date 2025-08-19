@@ -94,3 +94,49 @@
     overflow: hidden;
   }
 }
+
+*{
+  scroll-behavior: smooth;
+}
+
+*::-webkit-scrollbar {
+  display: none; 
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+.animate-typing {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: typing 3s steps(20) 1 forwards, blink 0.7s step-end infinite alternate;
+}
+
+@keyframes blink {
+  50% { border-color: transparent }
+}
+
+@keyframes blink {
+  0%, 50%, 100% { border-color: black; }
+  25%, 75% { border-color: transparent; }
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(var(--rotate, 0deg));
+  }
+  50% {
+    transform: translateY(-8px) rotate(var(--rotate, 0deg));
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
