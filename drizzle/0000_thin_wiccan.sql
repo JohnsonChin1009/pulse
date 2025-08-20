@@ -63,6 +63,7 @@ CREATE TABLE "users" (
 	"is_verified" boolean DEFAULT false,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now(),
+	"online_status" boolean DEFAULT false NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 
