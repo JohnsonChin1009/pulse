@@ -39,17 +39,6 @@ export function makeCrud<TTable extends AnyPgTable, TIdCol extends AnyPgColumn>(
       return (row ?? null) as Row | null;
     },
 
-    async list(opts?: ListOpts): Promise<Row[]> {
-      let q = db.select().from(table as unknown as AnyPgTable);
-      if (opts?.where) q = q.where(opts.where);
-      if (opts?.orderBy) q = q.orderBy(opts.orderBy);
-      if (opts?.limit) q = q.limit(opts.limit);
-      if (opts?.offset) q = q.offset(opts.offset);
-      // TS can’t keep the evolving builder type through conditionals; narrow once at the end:
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return q as unknown as Promise<Row[]>;
-    },
-
     async update(
       id: string | number,
       values: Partial<Insert>,
