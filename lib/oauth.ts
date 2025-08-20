@@ -11,7 +11,7 @@ export async function sha256base64url(input: string) {
 
 export function cookieOpts() {
   return {
-    httpOnly: true,
+    httpOnly: false,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax" as const,
     path: "/",
