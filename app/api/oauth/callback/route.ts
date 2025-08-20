@@ -51,7 +51,8 @@ export async function GET(request: Request) {
 
   const clientId = process.env.GOOGLE_CLIENT_ID!;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
-  const redirectURI = `${url.origin}/api/oauth/callback?provider=google`;
+  const baseURL = process.env.OAUTH_BASE_URL!;
+  const redirectURI = `${baseURL}/api/oauth/callback?provider=google`;
 
   const body = new URLSearchParams({
     client_id: clientId,
@@ -186,7 +187,7 @@ export async function GET(request: Request) {
     .setExpirationTime("7d")
     .sign(secret);
 
-  const res = NextResponse.redirect(new URL("/", url.origin));
+  const res = NextResponse.redirect(new URL("/", baseURL));
   res.cookies.set({
     name: "auth_token",
     value: jwt,

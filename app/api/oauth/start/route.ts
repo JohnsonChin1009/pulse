@@ -12,7 +12,8 @@ export async function GET(request: Request) {
     );
 
   const clientID = process.env.GOOGLE_CLIENT_ID!;
-  const redirectUri = `${url.origin}/api/oauth/callback?provider=google`;
+  const baseURL = process.env.OAUTH_BASE_URL!;
+  const redirectUri = `${baseURL}/api/oauth/callback?provider=google`;
 
   const state = randUrlSafe(16);
   const verifier = randUrlSafe(64);
@@ -26,7 +27,6 @@ export async function GET(request: Request) {
   auth.searchParams.set("state", state);
   auth.searchParams.set("code_challenge", challenge);
   auth.searchParams.set("code_challenge_method", "S256");
-
   const res = NextResponse.redirect(auth.toString());
   const base = cookieOpts();
   res.cookies.set({ name: "oauth_state", value: state, maxAge: 600, ...base });
