@@ -1,5 +1,6 @@
 "use client"
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useState, useRef, useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -8,7 +9,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Search, Send, Menu, X } from "lucide-react"
 
-const conversations = [
+interface Conversation {
+  id: number // Should Switch to the String as UserId is UUID
+  user: { // userDTO
+    name: string // userName
+    avatar: string // url / document
+    status: string // true = online, false = offline
+  }
+  lastMessage: string // update upon new message
+  timestamp: string // calculation in the system
+  unread: number // count of unread messages for user
+}
+
+const conversations: Conversation[] = [
   {
     id: 1,
     user: {
@@ -120,7 +133,7 @@ export default function LiveChatPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto pb-25 md:pb-0">
+    <div className="p-6 max-w-7xl mx-auto pb-25 md:pb-0 mb-0 md:mb-12">
       <div className="mb-6">
         <h1 className="font-montserrat font-bold text-3xl text-gray-900 mb-2">Live Chat</h1>
       </div>

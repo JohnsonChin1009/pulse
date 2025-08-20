@@ -36,7 +36,7 @@ const navItems = [
   { href: "/admin/reports", label: "Reports", icon: FileText },
 ]
 
-const mobileShelfItems = [...navItems, { href: "/admin/forum", label: "Forum", icon: MessageCircle }]
+const mobileShelfItems = [...navItems, { href: "/forum", label: "Forum", icon: MessageCircle }]
 const bottomNavItems = navItems
 
 export default function AdminHeader() {

@@ -50,6 +50,17 @@ const users = [
     lastActive: "2023-02-01",
     avatar: "/john.jpg",
   },
+  {
+    id: 3,
+    name: "Ben Smith",
+    email: "ben@example.com",
+    status: "suspended",
+    hearts: 5,
+    questsCompleted: 5,
+    joinDate: "2023-01-01",
+    lastActive: "2023-02-01",
+    avatar: "/john.jpg",
+  },
 ]
 
 const practitioners = [
@@ -63,7 +74,26 @@ const practitioners = [
     license: "12345",
     joinDate: "2023-01-01",
   },
-  // ... other practitioners ...
+  {
+    id: 2,
+    name: "Jane Smith",
+    email: "jane@example.com",
+    status: "rejected",
+    specialty: "Cardiology",
+    documents: ["doc1.pdf", "doc2.pdf"],
+    license: "12345",
+    joinDate: "2023-01-01",
+  },
+  {
+    id: 3,
+    name: "Jane Smith",
+    email: "jane@example.com",
+    status: "pending",
+    specialty: "Cardiology",
+    documents: ["doc1.pdf", "doc2.pdf"],
+    license: "12345",
+    joinDate: "2023-01-01",
+  },
 ]
 
 export default function UsersPage() {
@@ -266,17 +296,17 @@ export default function UsersPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full max-w-md grid-cols-2 bg-muted/50 p-1 rounded-xl shadow-md border border-muted-foreground/10">
+            <TabsList className="grid w-full max-w-md grid-cols-2 bg-muted/50 rounded-xl shadow-md border border-muted-foreground/10">
             <TabsTrigger
                 value="users"
-                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_3px_0_0_#000] transition-all"
             >
                 <UserCheck className="w-4 h-4" />
                 App Users
             </TabsTrigger>
             <TabsTrigger
                 value="practitioners"
-                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_3px_0_0_#000] transition-all"
             >
                 <Stethoscope className="w-4 h-4" />
                 Practitioners
@@ -357,7 +387,7 @@ export default function UsersPage() {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="h-11 px-4 border-border/50 hover:border-primary/50 bg-transparent"
+                        className="h-11 px-4 rounded-xl border-border/50 hover:border-primary/50 bg-transparent"
                       >
                         <Filter className="w-4 h-4 mr-2" />
                         Status: {statusFilter === "all" ? "All" : statusFilter}
@@ -455,7 +485,7 @@ export default function UsersPage() {
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="outline"
-                        className="h-11 px-4 border-border/50 hover:border-primary/50 bg-transparent"
+                        className="h-11 px-4 rounded-xl border-border/50 hover:border-primary/50 bg-transparent"
                       >
                         <Filter className="w-4 h-4 mr-2" />
                         Status: {verifyStatusFilter === "all" ? "All" : verifyStatusFilter}

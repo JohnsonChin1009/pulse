@@ -21,6 +21,7 @@ export const users = pgTable("users", {
   is_verified: boolean("is_verified").default(false),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  online_status: boolean("online_status").default(false).notNull(),
 });
 
 export const oauth_accounts = pgTable(
