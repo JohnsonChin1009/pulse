@@ -63,7 +63,7 @@ export function QuestsTab({ quests, achievements }: QuestsTabProps) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Add New Quest */}
+        {/* Form to Add New Quest */}
         <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-dela">
@@ -179,7 +179,7 @@ export function QuestsTab({ quests, achievements }: QuestsTabProps) {
           </CardContent>
         </Card>
 
-        {/* Active Quests */}
+        {/* Active Quests -- done */}
         <div className="lg:col-span-2 space-y-4">
           <h3 className="font-montserrat font-bold text-xl text-gray-900">Active Quests</h3>
 
@@ -204,11 +204,12 @@ export function QuestsTab({ quests, achievements }: QuestsTabProps) {
           {paginatedQuests.map((quest) => (
             <Card key={quest.id}>
               <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+                  {/* Quest Info */}
                   <div>
                     <h4 className="font-dela text-lg text-gray-900 mb-2">{quest.title}</h4>
                     <p className="text-gray-600 font-montserrat mb-3">{quest.description}</p>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <Badge variant="secondary">{quest.points} points</Badge>
                       <Badge
                         className={
@@ -233,118 +234,131 @@ export function QuestsTab({ quests, achievements }: QuestsTabProps) {
                       </span>
                     </div>
                   </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setEditingQuest({
-                            ...quest,
-                            achievement: {
-                              achievementId: 0,
-                              achievementName: "",
-                            },
-                          })
-                        }
-                      >
-                        Edit
-                      </Button>
-                    </DialogTrigger>
-                    {editingQuest?.id === quest.id && (
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Edit Quest</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4 mt-5">
-                          <Label htmlFor="questTitle" className="mb-3">
-                            Quest Title
-                          </Label>
-                          <Input
-                            className="rounded-sm border-gray-300"
-                            value={editingQuest.title}
-                            onChange={(e) =>
-                              setEditingQuest({
-                                ...editingQuest,
-                                title: e.target.value,
-                              })
-                            }
-                          />
-                          <Label htmlFor="questDescription" className="mb-3">
-                            Quest Description
-                          </Label>
-                          <Textarea
-                            className="rounded-sm border-gray-300 border-2"
-                            value={editingQuest.description}
-                            onChange={(e) =>
-                              setEditingQuest({
-                                ...editingQuest,
-                                description: e.target.value,
-                              })
-                            }
-                          />
-                          <Label htmlFor="pointsReward" className="mb-3">
-                            Points Reward
-                          </Label>
-                          <Input
-                            className="rounded-sm border-gray-300"
-                            type="number"
-                            value={editingQuest.points}
-                            onChange={(e) =>
-                              setEditingQuest({
-                                ...editingQuest,
-                                points: Number(e.target.value),
-                              })
-                            }
-                          />
-                          <Label htmlFor="questDifficulty" className="mb-3">
-                            Quest Difficulty
-                          </Label>
-                          <select
-                            className="w-full pt-3 pb-3 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#F5BE66] focus:ring focus:ring-[#F5BE66]/50"
-                            value={editingQuest.difficulty}
-                            onChange={(e) =>
-                              setEditingQuest({
-                                ...editingQuest,
-                                difficulty: e.target.value,
-                              })
-                            }
-                          >
-                            <option value="easy">Easy</option>
-                            <option value="medium">Medium</option>
-                            <option value="hard">Hard</option>
-                          </select>
 
-                          <Label htmlFor="achievement" className="mb-3">
-                            Quest Achievement
-                          </Label>
-                          <select
-                            className="w-full pt-3 pb-3 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#F5BE66] focus:ring focus:ring-[#F5BE66]/50"
-                            value={editingQuest.achievement.achievementId}
-                            onChange={(e) =>
-                              setEditingQuest({
-                                ...editingQuest,
-                                achievement: {
-                                  ...editingQuest.achievement,
-                                  achievementId: Number(e.target.value),
-                                },
-                              })
-                            }
-                          >
-                            <option value="">None</option>
-                            {achievements.map((ach, index) => (
-                              <option key={index} value={index}>
-                                {ach.name || ach.title}
-                              </option>
-                            ))}
-                          </select>
-                          <Button onClick={handleSaveEditQuest} className="mt-5">
-                            Save
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    )}
-                  </Dialog>
+                  {/* Action Buttons */}
+                  <div className="flex flex-col lg:flex-row gap-2 mt-4 lg:mt-0 lg:ml-6">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          className="h-9"
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setEditingQuest({
+                              ...quest,
+                              achievement: {
+                                achievementId: 0,
+                                achievementName: "",
+                              },
+                            })
+                          }
+                        >
+                          Edit
+                        </Button>
+                      </DialogTrigger>
+
+                      {editingQuest?.id === quest.id && (
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Edit Quest</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 mt-5">
+                            <Label htmlFor="questTitle" className="mb-3">
+                              Quest Title
+                            </Label>
+                            <Input
+                              className="rounded-sm border-gray-300"
+                              value={editingQuest.title}
+                              onChange={(e) =>
+                                setEditingQuest({
+                                  ...editingQuest,
+                                  title: e.target.value,
+                                })
+                              }
+                            />
+                            <Label htmlFor="questDescription" className="mb-3">
+                              Quest Description
+                            </Label>
+                            <Textarea
+                              className="rounded-sm border-gray-300 border-2"
+                              value={editingQuest.description}
+                              onChange={(e) =>
+                                setEditingQuest({
+                                  ...editingQuest,
+                                  description: e.target.value,
+                                })
+                              }
+                            />
+                            <Label htmlFor="pointsReward" className="mb-3">
+                              Points Reward
+                            </Label>
+                            <Input
+                              className="rounded-sm border-gray-300"
+                              type="number"
+                              value={editingQuest.points}
+                              onChange={(e) =>
+                                setEditingQuest({
+                                  ...editingQuest,
+                                  points: Number(e.target.value),
+                                })
+                              }
+                            />
+                            <Label htmlFor="questDifficulty" className="mb-3">
+                              Quest Difficulty
+                            </Label>
+                            <select
+                              className="w-full pt-3 pb-3 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#F5BE66] focus:ring focus:ring-[#F5BE66]/50"
+                              value={editingQuest.difficulty}
+                              onChange={(e) =>
+                                setEditingQuest({
+                                  ...editingQuest,
+                                  difficulty: e.target.value,
+                                })
+                              }
+                            >
+                              <option value="easy">Easy</option>
+                              <option value="medium">Medium</option>
+                              <option value="hard">Hard</option>
+                            </select>
+
+                            <Label htmlFor="achievement" className="mb-3">
+                              Quest Achievement
+                            </Label>
+                            <select
+                              className="w-full pt-3 pb-3 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-[#F5BE66] focus:ring focus:ring-[#F5BE66]/50"
+                              value={editingQuest.achievement.achievementId}
+                              onChange={(e) =>
+                                setEditingQuest({
+                                  ...editingQuest,
+                                  achievement: {
+                                    ...editingQuest.achievement,
+                                    achievementId: Number(e.target.value),
+                                  },
+                                })
+                              }
+                            >
+                              <option value="">None</option>
+                              {achievements.map((ach, index) => (
+                                <option key={index} value={index}>
+                                  {ach.name || ach.title}
+                                </option>
+                              ))}
+                            </select>
+                            <Button onClick={handleSaveEditQuest} className="mt-5">
+                              Save
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      )}
+                    </Dialog>
+
+                    <Button
+                      variant="outline"
+                      className="bg-red-500 text-white hover:bg-red-600 rounded-md"
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

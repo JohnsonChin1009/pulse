@@ -113,7 +113,7 @@ export default function SystemDashboard() {
 
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6 pb-25 md:pb-0 mb-0 md:mb-12">
 
         {/* Header for System [Admin] -- done */}
 
