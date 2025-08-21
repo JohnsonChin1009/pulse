@@ -102,7 +102,18 @@ export default function UsersPage() {
   const [verifyStatusFilter, setVerifyStatusFilter] = useState("all")
   const [activeTab, setActiveTab] = useState("users")
 
-  const filteredUsers = users.filter((user) => {
+  const [userList, setUserList] = useState(users)
+
+  type UserStatus = "active" | "inactive" | "suspended"
+
+  function handleStatusChange(userId: number, newStatus: UserStatus) {
+    setUserList(prev =>
+      prev.map(u => (u.id === userId ? { ...u, status: newStatus } : u))
+    )
+    // optional: await fetch(`/api/users/${userId}/status`, { method: "PUT", body: JSON.stringify({ status: newStatus }) })
+  }
+
+  const filteredUsers = userList.filter((user) => {
     if (statusFilter !== "all" && user.status !== statusFilter) return false
     if (
       !user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -197,10 +208,18 @@ export default function UsersPage() {
                 <Mail className="w-4 h-4 mr-2" />
                 Send Message
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
-                <Ban className="w-4 h-4 mr-2" />
-                Suspend User
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  className={user.status === "suspended" ? "" : "text-destructive"}
+                  onClick={() =>
+                    handleStatusChange(
+                      user.id,
+                      user.status === "suspended" ? "active" : "suspended"
+                    )
+                  }
+                >
+                  <Ban className="w-4 h-4 mr-2" />
+                  {user.status === "suspended" ? "Unsuspend User" : "Suspend User"}
+                </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -260,7 +279,7 @@ export default function UsersPage() {
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <FileText className="w-4 h-4 mr-2" />
-                View Documents
+                View Profile
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Mail className="w-4 h-4 mr-2" />
