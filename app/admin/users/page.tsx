@@ -288,7 +288,7 @@ export default function UsersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="p-6 max-w-7xl mx-auto pb-25 md:pb-0 mb-0 md:mb-12">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="font-montserrat font-bold  text-3xl sm:text-4xl text-foreground mb-2">User Management</h1>
