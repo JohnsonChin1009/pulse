@@ -53,8 +53,6 @@ export default function SystemDashboard() {
           throw new Error("Invalid system data structure")
         }
 
-        console.log(data)
-
         setSystemData(data)
         setError(null)
       } catch (error) {
