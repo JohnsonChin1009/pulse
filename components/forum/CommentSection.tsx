@@ -61,16 +61,16 @@ function Comment({ comment, user }: CommentProps) {
   const netScore = localUpvotes - localDownvotes;
 
   return (
-    <div className="border-l-2 border-border pl-4 py-3">
-      <div className="flex items-start gap-3">
+    <div className="border-l-2 border-border pl-3 sm:pl-4 py-3">
+      <div className="flex items-start gap-2 sm:gap-3">
         {/* User Avatar */}
-        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-sm font-semibold">
+        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs sm:text-sm font-semibold flex-shrink-0">
           {user?.username?.charAt(0).toUpperCase() || 'U'}
         </div>
 
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {/* Comment Header */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-2">
             <span className="font-medium text-foreground">
               u/{user?.username || 'Unknown'}
             </span>
@@ -79,12 +79,12 @@ function Comment({ comment, user }: CommentProps) {
           </div>
 
           {/* Comment Content */}
-          <div className="text-foreground mb-3">
+          <div className="text-foreground mb-3 text-sm sm:text-base">
             {comment.description}
           </div>
 
-          {/* Comment Actions */}
-          <div className="flex items-center gap-4 text-sm">
+          {/* Comment Actions - Mobile Responsive */}
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm">
             <div className="flex items-center gap-1">
               <button
                 onClick={() => handleVote('up')}
@@ -94,9 +94,9 @@ function Comment({ comment, user }: CommentProps) {
                     : 'text-muted-foreground hover:text-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/30'
                 }`}
               >
-                <ArrowUp className="w-4 h-4" />
+                <ArrowUp className="w-3 sm:w-4 h-3 sm:h-4" />
               </button>
-              <span className={`font-medium ${
+              <span className={`font-medium text-xs sm:text-sm ${
                 netScore > 0 ? 'text-orange-500' : netScore < 0 ? 'text-blue-500' : 'text-muted-foreground'
               }`}>
                 {netScore}
@@ -109,7 +109,7 @@ function Comment({ comment, user }: CommentProps) {
                     : 'text-muted-foreground hover:text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30'
                 }`}
               >
-                <ArrowDown className="w-4 h-4" />
+                <ArrowDown className="w-3 sm:w-4 h-3 sm:h-4" />
               </button>
             </div>
 
@@ -117,12 +117,12 @@ function Comment({ comment, user }: CommentProps) {
               onClick={() => setShowReply(!showReply)}
               className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
             >
-              <MessageCircle className="w-4 h-4" />
-              Reply
+              <MessageCircle className="w-3 sm:w-4 h-3 sm:h-4" />
+              <span className="text-xs sm:text-sm">Reply</span>
             </button>
 
             <button className="text-muted-foreground hover:text-foreground transition-colors">
-              <MoreHorizontal className="w-4 h-4" />
+              <MoreHorizontal className="w-3 sm:w-4 h-3 sm:h-4" />
             </button>
           </div>
 
@@ -131,7 +131,7 @@ function Comment({ comment, user }: CommentProps) {
             <div className="mt-4 p-3 bg-muted rounded-lg">
               <textarea
                 placeholder="Write a reply..."
-                className="w-full p-3 bg-background border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full p-2 sm:p-3 bg-background border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-ring text-sm"
                 rows={3}
               />
               <div className="flex justify-end gap-2 mt-2">
@@ -166,23 +166,23 @@ export default function CommentSection({ postId, comments, users }: CommentSecti
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Comment Form */}
       <div className="bg-card border border-border rounded-lg p-4">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Add a comment</h3>
+        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-4">Add a comment</h3>
         <form onSubmit={handleSubmitComment}>
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="What are your thoughts?"
-            className="w-full p-3 bg-background border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full p-3 bg-background border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-ring text-sm sm:text-base"
             rows={4}
           />
           <div className="flex justify-end mt-3">
             <button
               type="submit"
               disabled={!newComment.trim()}
-              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 sm:px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
               Comment
             </button>
@@ -193,15 +193,15 @@ export default function CommentSection({ postId, comments, users }: CommentSecti
       {/* Comments List */}
       <div className="bg-card border border-border rounded-lg">
         <div className="p-4 border-b border-border">
-          <h3 className="text-lg font-semibold text-foreground">
+          <h3 className="text-base sm:text-lg font-semibold text-foreground">
             Comments ({comments.length})
           </h3>
         </div>
         
         {comments.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground">
-            <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>No comments yet. Be the first to share your thoughts!</p>
+          <div className="p-6 sm:p-8 text-center text-muted-foreground">
+            <MessageCircle className="w-10 sm:w-12 h-10 sm:h-12 mx-auto mb-3 opacity-50" />
+            <p className="text-sm sm:text-base">No comments yet. Be the first to share your thoughts!</p>
           </div>
         ) : (
           <div className="divide-y divide-border">
