@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Forum } from '@/lib/mockData';
 import { Home, Users, TrendingUp, X } from 'lucide-react';
+import CreateForum from './CreateForum';
 
 interface ForumSidebarProps {
   selectedForum: string;
@@ -10,9 +11,10 @@ interface ForumSidebarProps {
   forums: Forum[];
   isOpen?: boolean;
   onClose?: () => void;
+  onForumCreated?: () => void;
 }
 
-export default function ForumSidebar({ selectedForum, onForumSelect, forums, isOpen = true, onClose }: ForumSidebarProps) {
+export default function ForumSidebar({ selectedForum, onForumSelect, forums, isOpen = true, onClose, onForumCreated }: ForumSidebarProps) {
   return (
     <>
       {/* Mobile overlay */}
@@ -76,9 +78,12 @@ export default function ForumSidebar({ selectedForum, onForumSelect, forums, isO
 
             {/* Forums */}
             <div>
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                Communities
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                  Communities
+                </h3>
+                <CreateForum onForumCreated={onForumCreated} />
+              </div>
               <div className="space-y-1">
                 {forums.map((forum) => (
                   <button

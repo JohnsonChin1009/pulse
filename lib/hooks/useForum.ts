@@ -1,0 +1,226 @@
+import { useState, useEffect } from 'react';
+
+// Types based on your database schema
+export interface Forum {
+  id: number;
+  topic: string;
+  description: string | null;
+  popular_rank: number | null;
+  user_id: string;
+  created_at: Date | null;
+}
+
+export interface ForumPost {
+  id: number;
+  title: string;
+  description: string;
+  date_posted: Date | null;
+  upvotes: number | null;
+  downvotes: number | null;
+  forum_id: number;
+  user_id: string;
+  username: string | null;
+  user_profile_picture: string | null;
+  forum_topic: string | null;
+  comment_count: number;
+}
+
+export interface ForumComment {
+  id: number;
+  content: string;
+  date_created: Date | null;
+  upvotes: number | null;
+  downvotes: number | null;
+  forum_post_id: number;
+  user_id: string;
+  username: string | null;
+  user_profile_picture: string | null;
+}
+
+// Custom hook for fetching forums
+export function useForums() {
+  const [forums, setForums] = useState<Forum[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchForums() {
+      try {
+        const response = await fetch('/api/forums');
+        if (!response.ok) {
+          throw new Error('Failed to fetch forums');
+        }
+        const data = await response.json();
+        setForums(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchForums();
+  }, []);
+
+  return { forums, loading, error, refetch: () => window.location.reload() };
+}
+
+// Custom hook for fetching posts
+export function usePosts(forumId?: number) {
+  const [posts, setPosts] = useState<ForumPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchPosts() {
+      try {
+        const url = forumId ? `/api/posts?forumId=${forumId}` : '/api/posts';
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error('Failed to fetch posts');
+        }
+        const data = await response.json();
+        setPosts(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchPosts();
+  }, [forumId]);
+
+  return { posts, loading, error, refetch: () => window.location.reload() };
+}
+
+// Custom hook for fetching comments
+export function useComments(postId: number) {
+  const [comments, setComments] = useState<ForumComment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchComments() {
+      try {
+        const response = await fetch(`/api/comments?postId=${postId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch comments');
+        }
+        const data = await response.json();
+        setComments(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (postId) {
+      fetchComments();
+    }
+  }, [postId]);
+
+  return { comments, loading, error, refetch: () => window.location.reload() };
+}
+
+// Utility functions for API calls
+export const forumAPI = {
+  // Vote on a post
+  async votePost(postId: number, type: 'upvote' | 'downvote') {
+    const response = await fetch(`/api/posts/${postId}/vote`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ type }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to vote on post');
+    }
+    
+    return response.json();
+  },
+
+  // Vote on a comment
+  async voteComment(commentId: number, type: 'upvote' | 'downvote') {
+    const response = await fetch(`/api/comments/${commentId}/vote`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ type }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to vote on comment');
+    }
+    
+    return response.json();
+  },
+
+  // Create a new post
+  async createPost(data: {
+    title: string;
+    description: string;
+    forum_id: number;
+    user_id: string;
+  }) {
+    const response = await fetch('/api/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to create post');
+    }
+    
+    return response.json();
+  },
+
+  // Create a new comment
+  async createComment(data: {
+    content: string;
+    forum_post_id: number;
+    user_id: string;
+  }) {
+    const response = await fetch('/api/comments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to create comment');
+    }
+    
+    return response.json();
+  },
+
+  // Create a new forum
+  async createForum(data: {
+    topic: string;
+    description?: string;
+    user_id: string;
+  }) {
+    const response = await fetch('/api/forums', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to create forum');
+    }
+    
+    return response.json();
+  },
+};
