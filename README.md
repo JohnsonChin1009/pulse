@@ -15,6 +15,10 @@
 - Forum Post -> Save Forum Posts
 - Forum Comment -> Save Forum Comments
 
+Commands:
+drizzle-kit generate
+drizzle-kit push
+
 2. DynamoDB Database: [uses localhost -> .env] [DynamoDB Name - On AWS Creation: pulse] # Self-Host in Development
 Note: LiveChat Function Usage Only.
 ` Require [AWS_REGION, AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, AWS_DYNAMODB_ENDPOINT] `
@@ -23,6 +27,9 @@ Note: LiveChat Function Usage Only.
 *These are Table Names - NO DATABASE NAME*
 - ChatSession -> Save Chat Record Created By Users
 - ChatMessage -> Save Chat Messages according to Chat Record
+
+Commands:
+npm run dynamodb
 
 3. S3 Buckets: [uses personal aws account -> .env] [Bucket Name: pulse] 
 Note: require access key & secret rotation - 4 hours # Self-Host in Development

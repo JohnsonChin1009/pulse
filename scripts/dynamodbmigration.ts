@@ -1,5 +1,5 @@
 import { CreateTableCommand, ListTablesCommand, ScalarAttributeType, KeyType } from "@aws-sdk/client-dynamodb";
-import ddbDocClient from "@/lib/db/dynamodbconnection";
+import ddbDocClient from "../lib/db/dynamodbconnection";
 
 async function createTableIfNotExists(tableName: string, createFn: () => Promise<void>) {
   try {

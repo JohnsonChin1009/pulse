@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dynamodb": "ts-node -r tsconfig-paths/register -r dotenv/config -P tsconfig.scripts.json scripts/dynamodbmigration.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.868.0",
@@ -63,7 +64,8 @@
     "pg": "^8.16.3",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "tw-animate-css": "^1.3.6",
-    "typescript": "^5"
+    "typescript": "^5.9.2"
   }
 }
