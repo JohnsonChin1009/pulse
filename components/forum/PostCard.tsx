@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ForumPost, User, Forum } from '@/lib/mockData';
+import { forumAPI } from '@/lib/hooks/useForum';
 import {
   ArrowUp,
   ArrowDown,
@@ -12,40 +12,83 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+// Updated interfaces to match the new data structure
 interface PostCardProps {
-  post: ForumPost;
-  user?: User;
-  forum?: Forum;
+  post: {
+    id: string;
+    title: string;
+    description: string;
+    datePost: string;
+    upvotes: number;
+    downvotes: number;
+    forumId: string;
+    userId: string;
+    commentCount: number;
+    username?: string;
+    userAvatar?: string | null;
+    forumName?: string;
+  };
+  user?: {
+    id: string;
+    username: string;
+    avatar?: string | null;
+    karma?: number;
+  };
+  forum?: {
+    id: string;
+    name: string;
+    description: string;
+    color: string;
+    memberCount: number;
+  };
 }
 
 export default function PostCard({ post, user, forum }: PostCardProps) {
   const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
   const [localUpvotes, setLocalUpvotes] = useState(post.upvotes);
   const [localDownvotes, setLocalDownvotes] = useState(post.downvotes);
+  const [isVoting, setIsVoting] = useState(false);
 
-  const handleVote = (voteType: 'up' | 'down') => {
-    if (userVote === voteType) {
-      // Remove vote
-      if (voteType === 'up') {
-        setLocalUpvotes((prev) => prev - 1);
+  const handleVote = async (voteType: 'up' | 'down') => {
+    if (isVoting) return;
+    
+    setIsVoting(true);
+    
+    try {
+      if (userVote === voteType) {
+        // Remove vote - for now just update locally
+        // In a real app, you'd need a separate API endpoint to remove votes
+        if (voteType === 'up') {
+          setLocalUpvotes((prev) => prev - 1);
+        } else {
+          setLocalDownvotes((prev) => prev - 1);
+        }
+        setUserVote(null);
       } else {
-        setLocalDownvotes((prev) => prev - 1);
-      }
-      setUserVote(null);
-    } else {
-      // Add new vote, remove old if exists
-      if (userVote === 'up') {
-        setLocalUpvotes((prev) => prev - 1);
-      } else if (userVote === 'down') {
-        setLocalDownvotes((prev) => prev - 1);
-      }
+        // Add new vote, remove old if exists
+        if (userVote === 'up') {
+          setLocalUpvotes((prev) => prev - 1);
+        } else if (userVote === 'down') {
+          setLocalDownvotes((prev) => prev - 1);
+        }
 
-      if (voteType === 'up') {
-        setLocalUpvotes((prev) => prev + 1);
-      } else {
-        setLocalDownvotes((prev) => prev + 1);
+        // Call the API to vote
+        const voteAction = voteType === 'up' ? 'upvote' : 'downvote';
+        await forumAPI.votePost(parseInt(post.id), voteAction);
+
+        if (voteType === 'up') {
+          setLocalUpvotes((prev) => prev + 1);
+        } else {
+          setLocalDownvotes((prev) => prev + 1);
+        }
+        setUserVote(voteType);
       }
-      setUserVote(voteType);
+    } catch (error) {
+      console.error('Error voting:', error);
+      // Revert optimistic update on error
+      // You might want to show a toast notification here
+    } finally {
+      setIsVoting(false);
     }
   };
 
@@ -66,6 +109,11 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
 
   const netScore = localUpvotes - localDownvotes;
 
+  // Use the username from the post data if available, otherwise fall back to user prop
+  const displayUsername = post.username || user?.username || 'Unknown';
+  const displayAvatar = post.userAvatar || user?.avatar;
+  const displayForumName = post.forumName || forum?.name || 'Unknown Forum';
+
   return (
     <div className='bg-card border-b border-border sm:border sm:rounded-lg hover:bg-accent/5 transition-colors'>
       {/* Mobile Layout - Reddit Style */}
@@ -75,11 +123,12 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
           <div className='flex flex-col items-center justify-start mr-2 pt-1'>
             <button
               onClick={() => handleVote('up')}
-              className={`p-1 rounded ${
+              disabled={isVoting}
+              className={`p-1 rounded transition-colors ${
                 userVote === 'up'
                   ? 'text-orange-500'
                   : 'text-muted-foreground hover:text-orange-500'
-              }`}
+              } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <ArrowUp className='w-4 h-4' />
             </button>
@@ -98,11 +147,12 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
             </span>
             <button
               onClick={() => handleVote('down')}
-              className={`p-1 rounded ${
+              disabled={isVoting}
+              className={`p-1 rounded transition-colors ${
                 userVote === 'down'
                   ? 'text-blue-500'
                   : 'text-muted-foreground hover:text-blue-500'
-              }`}
+              } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <ArrowDown className='w-4 h-4' />
             </button>
@@ -113,22 +163,18 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
             {/* Post Header */}
             <div className='flex items-center text-xs text-muted-foreground mb-1 overflow-hidden'>
               <div className='flex items-center gap-1 flex-shrink-0'>
-                {forum && (
-                  <>
-                    <div className={`w-2 h-2 rounded-full ${forum.color}`} />
-                    <Link
-                      href={`/forum/${forum.id}`}
-                      className='font-medium hover:text-foreground !min-h-0'
-                    >
-                      r/{forum.name}
-                    </Link>
-                    <span>•</span>
-                  </>
-                )}
+                <div className={`w-2 h-2 rounded-full ${forum?.color || 'bg-gray-500'}`} />
+                <Link
+                  href={`/forum/${post.forumId}`}
+                  className='font-medium hover:text-foreground !min-h-0'
+                >
+                  r/{displayForumName}
+                </Link>
+                <span>•</span>
               </div>
               <div className='flex items-center gap-1 min-w-0 flex-1'>
                 <span className='truncate'>
-                  u/{user?.username || 'Unknown'}
+                  u/{displayUsername}
                 </span>
                 <span className='flex-shrink-0'>•</span>
                 <span className='flex-shrink-0'>
@@ -176,11 +222,12 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
         <div className='flex flex-col items-center p-3 bg-muted/30 rounded-l-lg'>
           <button
             onClick={() => handleVote('up')}
+            disabled={isVoting}
             className={`p-1 rounded transition-colors ${
               userVote === 'up'
                 ? 'text-orange-500 bg-orange-100 dark:bg-orange-900/30'
                 : 'text-muted-foreground hover:text-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/30'
-            }`}
+            } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <ArrowUp className='w-5 h-5' />
           </button>
@@ -197,11 +244,12 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
           </span>
           <button
             onClick={() => handleVote('down')}
+            disabled={isVoting}
             className={`p-1 rounded transition-colors ${
               userVote === 'down'
                 ? 'text-blue-500 bg-blue-100 dark:bg-blue-900/30'
                 : 'text-muted-foreground hover:text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30'
-            }`}
+            } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <ArrowDown className='w-5 h-5' />
           </button>
@@ -211,24 +259,20 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
         <div className='flex-1 p-4'>
           {/* Post Header */}
           <div className='flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-2'>
-            {forum && (
-              <>
-                <div className={`w-3 h-3 rounded-full ${forum.color}`} />
-                <Link
-                  href={`/forum/${forum.id}`}
-                  className='font-medium hover:text-foreground transition-colors'
-                >
-                  r/{forum.name}
-                </Link>
-                <span>•</span>
-              </>
-            )}
+            <div className={`w-3 h-3 rounded-full ${forum?.color || 'bg-gray-500'}`} />
+            <Link
+              href={`/forum/${post.forumId}`}
+              className='font-medium hover:text-foreground transition-colors'
+            >
+              r/{displayForumName}
+            </Link>
+            <span>•</span>
             <span>Posted by</span>
             <Link
-              href={`/user/${user?.username}`}
+              href={`/user/${displayUsername}`}
               className='hover:text-foreground transition-colors'
             >
-              u/{user?.username || 'Unknown'}
+              u/{displayUsername}
             </Link>
             <span>•</span>
             <span>{formatTimeAgo(post.datePost)} ago</span>
