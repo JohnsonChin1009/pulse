@@ -1,5 +1,6 @@
 
-import AdminNavigator from "@/components/admin/navigator";
+import AdminNavigator from "@/app/admin/navigator";
+import { AuthProvider } from "./authContext";
 
 export default function AdminLayout({
   children,
@@ -8,8 +9,10 @@ export default function AdminLayout({
 }>) {
   return (
       <div>
+        <AuthProvider>
         <AdminNavigator />
         {children}
+      </AuthProvider>
       </div>
   );
 }

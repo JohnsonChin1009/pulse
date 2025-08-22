@@ -7,8 +7,18 @@ import { VisionMissionSection } from "@/components/landing/vision-mission";
 import { Footer } from "@/components/landing/footer";
 import BottomBanner from "@/components/landing/bottom-banner";
 import AnimateOnView from "@/components/landing/animation";
+import { generateToken } from "@/lib/mockJwt";
 
-export default function LandingPage() {
+
+export default async function LandingPage() {
+  const token = await generateToken(
+    "5731feeb-05cd-4427-9080-ad366bad1fa6",
+    "sohjs.work@gmail.com",
+    "admin"
+  );
+
+  console.log("Mock JWT: " + token);
+
   return (
     <div className="min-h-screen bg-white">
       <Header />

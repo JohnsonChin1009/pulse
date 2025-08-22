@@ -27,6 +27,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
+import { useAuth } from "./authContext"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: BarChart3 },
@@ -42,6 +43,9 @@ const bottomNavItems = navItems
 export default function AdminHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+
+  const { user } = useAuth();
+
 
   return (
     <>
