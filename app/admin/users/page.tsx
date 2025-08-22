@@ -25,6 +25,8 @@ import {
   AlertTriangle,
   Users,
   TrendingUp,
+  X,
+  UserCheckIcon,
 } from "lucide-react"
 
 const users = [
@@ -208,18 +210,24 @@ export default function UsersPage() {
                 <Mail className="w-4 h-4 mr-2" />
                 Send Message
               </DropdownMenuItem>
-                <DropdownMenuItem
-                  className={user.status === "suspended" ? "" : "text-destructive"}
-                  onClick={() =>
-                    handleStatusChange(
-                      user.id,
-                      user.status === "suspended" ? "active" : "suspended"
-                    )
-                  }
-                >
-                  <Ban className="w-4 h-4 mr-2" />
-                  {user.status === "suspended" ? "Unsuspend User" : "Suspend User"}
-                </DropdownMenuItem>
+              <DropdownMenuItem
+                  className={`flex items-center ${
+                    user.status === "suspended" ? "text-green-600" : "text-red-600"
+                  }`}
+                onClick={() =>
+                  handleStatusChange(
+                    user.id,
+                    user.status === "suspended" ? "active" : "suspended"
+                  )
+                }
+              >
+                <Ban
+                  className={`w-4 h-4 mr-2 ${
+                    user.status === "suspended" ? "text-green-600" : "text-red-600"
+                  }`}
+                />
+                {user.status === "suspended" ? "Unsuspend User" : "Suspend User"}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -247,7 +255,7 @@ export default function UsersPage() {
   )
 
   const PractitionerCard = ({ practitioner }: { practitioner: (typeof practitioners)[0] }) => (
-    <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/50 hover:border-primary/20">
+    <Card className="group mb-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/50 hover:border-primary/20">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -277,9 +285,13 @@ export default function UsersPage() {
                 <Eye className="w-4 h-4 mr-2" />
                 Review Application
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <FileText className="w-4 h-4 mr-2" />
-                View Profile
+              <DropdownMenuItem className="text-green-500">
+                <UserCheckIcon className="w-4 h-4 mr-2 text-green-500" />
+                Approve Application
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-red-500">
+                <X className="w-4 h-4 mr-2 text-red-500" />
+                Reject Application
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <Mail className="w-4 h-4 mr-2" />
@@ -315,17 +327,17 @@ export default function UsersPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full max-w-md grid-cols-2 bg-muted/50 rounded-xl shadow-md border border-muted-foreground/10">
+            <TabsList className="flex w-full max-w-md  bg-muted/50 rounded-xl shadow-md border border-muted-foreground/10">
             <TabsTrigger
                 value="users"
-                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_3px_0_0_#000] transition-all"
+                className="flex overflow-hidden items-center gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_3px_0_0_#000] transition-all"
             >
                 <UserCheck className="w-4 h-4" />
                 App Users
             </TabsTrigger>
             <TabsTrigger
                 value="practitioners"
-                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_3px_0_0_#000] transition-all"
+                className="flex items-center gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_3px_0_0_#000] transition-all"
             >
                 <Stethoscope className="w-4 h-4" />
                 Practitioners
