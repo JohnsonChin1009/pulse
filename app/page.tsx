@@ -1,20 +1,45 @@
-"use client";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Header } from "@/components/landing/header";
+import { HeroSection } from "@/components/landing/hero";
+import { AboutSection } from "@/components/landing/about";
+import { HowItWorksSection } from "@/components/landing/how-it-works";
+import { TeamSection } from "@/components/landing/team";
+import { VisionMissionSection } from "@/components/landing/vision-mission";
+import { Footer } from "@/components/landing/footer";
+import BottomBanner from "@/components/landing/bottom-banner";
+import AnimateOnView from "@/components/landing/animation";
 
 export default function LandingPage() {
   return (
-    <main className="py-10 flex flex-col space-y-6 px-4">
-      <Button variant="default">Login</Button>
-      <Button variant="destructive">Login</Button>
-      <Button variant="text">Login</Button>
-      <Button variant="icon">Login</Button>
-      <Button variant="outline">Login</Button>
-      <Button variant="secondary">Login</Button>
-      <Button variant="ghost">Login</Button>
-      <Button variant="link">Login</Button>
-      <Input placeholder="Email" />
-    </main>
+    <div className="min-h-screen bg-white">
+      <Header />
+      <main>
+        <AnimateOnView animation="slideDown">
+          <HeroSection />
+        </AnimateOnView>
+
+        <AnimateOnView animation="slideLeft">
+          <AboutSection />
+        </AnimateOnView>
+
+        <AnimateOnView animation="slideRight">
+          <HowItWorksSection />
+        </AnimateOnView>
+
+        <AnimateOnView animation="slideDown">
+          <TeamSection />
+        </AnimateOnView>
+
+        <AnimateOnView animation="slideUp">
+          <VisionMissionSection />
+        </AnimateOnView>
+
+        <AnimateOnView animation="fadeIn" duration={2}>
+          <BottomBanner />
+        </AnimateOnView>
+      </main>
+      <AnimateOnView animation="slideUp">
+        <Footer />
+      </AnimateOnView>
+    </div>
   );
 }

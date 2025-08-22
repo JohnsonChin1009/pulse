@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -94,36 +94,97 @@
     overflow: hidden;
   }
 }
-  
-  /* Custom responsive breakpoint for extra small screens */
-  @media (min-width: 475px) {
-    .xs\:inline {
-      display: inline;
-    }
-    .xs\:hidden {
-      display: none;
-    }
+
+* {
+  scroll-behavior: smooth;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
   }
-  
-  /* Ensure proper touch targets on mobile */
-  @media (max-width: 768px) {
-    button, a {
-      min-height: 44px;
-      min-width: 44px;
-    }
+  to {
+    width: 100%;
   }
-  
-  /* Improve text readability on mobile */
-  @media (max-width: 640px) {
-    .text-responsive {
-      font-size: 0.875rem;
-      line-height: 1.25rem;
-    }
+}
+
+.animate-typing {
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  animation: typing 3s steps(20) 1 forwards,
+    blink 0.7s step-end infinite alternate;
+}
+
+@keyframes blink {
+  50% {
+    border-color: transparent;
   }
-  
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+}
+
+@keyframes blink {
+  0%,
+  50%,
+  100% {
+    border-color: black;
   }
+  25%,
+  75% {
+    border-color: transparent;
+  }
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--rotate, 0deg));
+  }
+  50% {
+    transform: translateY(-8px) rotate(var(--rotate, 0deg));
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+/* Custom responsive breakpoint for extra small screens */
+@media (min-width: 475px) {
+  .xs\:inline {
+    display: inline;
+  }
+  .xs\:hidden {
+    display: none;
+  }
+}
+
+/* Ensure proper touch targets on mobile */
+@media (max-width: 768px) {
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Improve text readability on mobile */
+@media (max-width: 640px) {
+  .text-responsive {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

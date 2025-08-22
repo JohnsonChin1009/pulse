@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config) => {
+    config.cache = false; // disable file-system caching in Docker
+    return config;
+  },
 };
 
 export default nextConfig;
