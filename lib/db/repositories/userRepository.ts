@@ -38,4 +38,18 @@ export const usersRepository = {
     const [row] = await db.delete(users).where(eq(users.id, id)).returning();
     return row ?? null;
   },
+
+  // Selecting all user from the database to Create Chat Session
+  async listUser(): Promise<
+    { id: string; username: string; profile_picture_url: string | null; online_status: boolean }[]
+  > {
+    return db
+      .select({
+        id: users.id,
+        username: users.username,
+        profile_picture_url: users.profile_picture_url,
+        online_status: users.online_status,
+      })
+      .from(users);
+  },
 };

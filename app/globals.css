@@ -188,3 +188,26 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.custom-scrollbar {
+  overflow-y: auto !important; /* ensure scrolling */
+}
+
+/* override the global scrollbar: */
+.custom-scrollbar::-webkit-scrollbar {
+  display: initial !important;
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.5);
+}
