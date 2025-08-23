@@ -19,9 +19,10 @@ export const users = pgTable("users", {
   role: varchar("role", { length: 20 }).notNull().default("user"),
   gender: varchar("gender", { length: 10 }),
   is_verified: boolean("is_verified").default(false),
+  online_status: boolean("online_status").default(false),
+  suspension_status: boolean("suspension_status").default(false),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updated_at: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-  online_status: boolean("online_status").default(false).notNull(),
 });
 
 export const oauth_accounts = pgTable(
@@ -62,28 +63,27 @@ export const pets = pgTable("pets", {
 });
 
 export const forums = pgTable("forums", {
-  id: serial("id").primaryKey(), // Changed to serial
-  topic: varchar("topic", { length: 256 }).notNull(), // Renamed from topics to topic
-  description: text("description"), // Changed to text for longer descriptions
+  id: serial("id").primaryKey(),
+  topic: varchar("topic", { length: 256 }).notNull(),
+  description: text("description"),
   popular_rank: integer("popular_rank").default(0),
   user_id: uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }), // Changed to cascade
+    .references(() => users.id, { onDelete: "cascade" }),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
 export const forumPosts = pgTable("forum_posts", {
-  // Changed table name to snake_case
-  id: serial("id").primaryKey(), // Changed to serial
+  id: serial("id").primaryKey(),
   title: varchar("title", { length: 256 }).notNull(),
   description: text("description").notNull(),
   date_posted: timestamp("date_posted", { withTimezone: true }).defaultNow(),
   upvotes: integer("upvotes").default(0),
   downvotes: integer("downvotes").default(0),
-  user_id: uuid("user_id") // Added user_id to track post author
+  user_id: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  forum_id: integer("forum_id") // Changed to integer to match forums.id
+  forum_id: integer("forum_id")
     .notNull()
     .references(() => forums.id, { onDelete: "cascade" }),
 });
@@ -98,6 +98,65 @@ export const forumComments = pgTable("forum_comments", {
   forum_post_id: integer("forum_post_id") // Changed to integer
     .notNull()
     .references(() => forumPosts.id, { onDelete: "cascade" }),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+});
+
+export const leaderboards = pgTable("leaderboards", {
+  id: serial("id").primaryKey(),
+  highest_level: integer("highest_level").default(0),
+  highest_score_cumulative: integer("highest_score_cumulative").default(0),
+  hightest_most_achievement: integer("hightest_most_achievement").default(0),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+});
+
+export const quests = pgTable("quests", {
+  id: serial("id").primaryKey(),
+  title: varchar("title", { length: 256 }).notNull(),
+  description: text("description"),
+  points_awarded: integer("points_awarded").default(0),
+  available_date: timestamp("available_date", { withTimezone: true }),
+  last_updated_at: timestamp("last_updated_at", {
+    withTimezone: true,
+  }).defaultNow(),
+  expiration_date: timestamp("expiration_date", { withTimezone: true }),
+  difficulty_level: varchar("difficulty_level", { length: 50 }),
+});
+
+export const questCompletions = pgTable("quest_completions", {
+  id: serial("id").primaryKey(),
+  completed_at: timestamp("completed_at", { withTimezone: true }).defaultNow(),
+  completion_status: varchar("completion_status", { length: 50 }),
+  quest_id: serial("quest_id")
+    .notNull()
+    .references(() => quests.id, { onDelete: "cascade" }),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+});
+
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  achievement_title: varchar("achievement_title", { length: 256 }).notNull(),
+  achievement_description: text("achievement_description"),
+  achievement_score: integer("achievement_score").default(0),
+  achievement_icon: text("achievement_icon"),
+  leaderboard_id: serial("leaderboard_id")
+    .notNull()
+    .references(() => leaderboards.id, { onDelete: "cascade" }),
+  quest_id: serial("quest_id")
+    .notNull()
+    .references(() => quests.id, { onDelete: "cascade" }),
+});
+
+export const practitioners = pgTable("practitioners", {
+  id: serial("id").primaryKey(),
+  license_url: text("license_url").notNull(),
+  submitted_at: timestamp("submitted_at", { withTimezone: true }).defaultNow(),
+  status: varchar("status", { length: 50 }).default("pending"),
   user_id: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
