@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Search, Plus, User, Menu } from 'lucide-react';
+import { Search, User, Menu } from 'lucide-react';
 
 interface ForumHeaderProps {
   onMenuClick?: () => void;
@@ -42,20 +42,6 @@ export default function ForumHeader({ onMenuClick }: ForumHeaderProps) {
               <Link href="/" className="text-lg sm:text-xl font-bold text-primary">
                 Pulse Forum
               </Link>
-              <nav className="hidden md:flex items-center gap-4">
-                <Link 
-                  href="/forum" 
-                  className="text-foreground hover:text-primary transition-colors"
-                >
-                  Home
-                </Link>
-                <Link 
-                  href="/forum?filter=popular" 
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Popular
-                </Link>
-              </nav>
             </div>
 
             {/* Desktop search bar */}
@@ -71,10 +57,6 @@ export default function ForumHeader({ onMenuClick }: ForumHeaderProps) {
             </div>
 
             <div className="flex items-center gap-1 sm:gap-3">
-              <button className="flex items-center gap-2 px-2 sm:px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Create Post</span>
-              </button>
               <button className="p-2 text-muted-foreground hover:text-foreground transition-colors">
                 <User className="w-5 h-5" />
               </button>

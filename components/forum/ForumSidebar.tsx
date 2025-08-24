@@ -1,9 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Forum } from '@/lib/mockData';
-import { Home, Users, TrendingUp, X } from 'lucide-react';
+import { Home, Users, TrendingUp, X, Plus } from 'lucide-react';
 import CreateForum from './CreateForum';
+import Link from 'next/link';
+
+// Updated interface to match real data structure
+interface Forum {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  memberCount: number;
+}
 
 interface ForumSidebarProps {
   selectedForum: string;
@@ -52,11 +61,9 @@ export default function ForumSidebar({ selectedForum, onForumSelect, forums, isO
                 Navigation
               </h3>
               <div className="space-y-1">
-                <button
-                  onClick={() => {
-                    onForumSelect('all');
-                    onClose?.();
-                  }}
+                <Link
+                  href="/forum"
+                  onClick={onClose}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     selectedForum === 'all'
                       ? 'bg-primary text-primary-foreground'
@@ -64,15 +71,16 @@ export default function ForumSidebar({ selectedForum, onForumSelect, forums, isO
                   }`}
                 >
                   <Home className="w-4 h-4" />
-                  All Posts
-                </button>
-                <button 
+                  Home
+                </Link>
+                <Link 
+                  href="/forum?filter=popular"
                   onClick={onClose}
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-foreground hover:bg-accent transition-colors"
                 >
                   <TrendingUp className="w-4 h-4" />
-                  Trending
-                </button>
+                  Popular
+                </Link>
               </div>
             </div>
 
@@ -85,28 +93,34 @@ export default function ForumSidebar({ selectedForum, onForumSelect, forums, isO
                 <CreateForum onForumCreated={onForumCreated} />
               </div>
               <div className="space-y-1">
-                {forums.map((forum) => (
-                  <button
-                    key={forum.id}
-                    onClick={() => {
-                      onForumSelect(forum.id);
-                      onClose?.();
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                      selectedForum === forum.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-foreground hover:bg-accent'
-                    }`}
-                  >
-                    <div className={`w-4 h-4 rounded-full ${forum.color}`} />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{forum.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {forum.memberCount.toLocaleString()} members
+                {forums.length === 0 ? (
+                  <div className="text-sm text-muted-foreground text-center py-4">
+                    No communities yet
+                  </div>
+                ) : (
+                  forums.map((forum) => (
+                    <button
+                      key={forum.id}
+                      onClick={() => {
+                        onForumSelect(forum.id);
+                        onClose?.();
+                      }}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                        selectedForum === forum.id
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-foreground hover:bg-accent'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded-full ${forum.color}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{forum.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {forum.memberCount > 0 ? `${forum.memberCount.toLocaleString()} members` : 'New community'}
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
 

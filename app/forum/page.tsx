@@ -6,11 +6,13 @@ import ForumSidebar from '@/components/forum/ForumSidebar';
 import PostList from '@/components/forum/PostList';
 import CreatePost from '@/components/forum/CreatePost';
 import { useForums, usePosts } from '@/lib/hooks/useForum';
+import { Plus } from 'lucide-react';
 
 export default function ForumPage() {
   const [selectedForum, setSelectedForum] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'hot' | 'new' | 'top'>('hot');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showCreatePost, setShowCreatePost] = useState(false);
 
   // Fetch real data from database
   const { forums, loading: forumsLoading, error: forumsError, refetch: refetchForums } = useForums();
@@ -65,7 +67,7 @@ export default function ForumPage() {
     datePost: post.date_posted ? new Date(post.date_posted as any).toISOString() : new Date().toISOString(),
     upvotes: post.upvotes || 0,
     downvotes: post.downvotes || 0,
-    forumId: post.forum_id.toString(),
+    forumId: post.forum_id,
     userId: post.user_id,
     commentCount: post.comment_count || 0,
     username: post.username || 'Anonymous',
@@ -100,6 +102,12 @@ export default function ForumPage() {
     }
   });
 
+  const handlePostCreated = () => {
+    console.log('Post created, closing modal and refreshing posts');
+    setShowCreatePost(false);
+    refetchPosts();
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <ForumHeader onMenuClick={() => setSidebarOpen(true)} />
@@ -115,31 +123,37 @@ export default function ForumPage() {
           onForumCreated={refetchForums}
         />
         
-        {/* Mobile Sort Bar */}
+        {/* Mobile Sort Bar with Create Post Button */}
         <div className="bg-card border-b border-border px-3 py-2">
-          <div className="flex gap-1 overflow-x-auto">
-            {(['hot', 'new', 'top'] as const).map((sort) => (
-              <button
-                key={sort}
-                onClick={() => setSortBy(sort)}
-                className={`px-3 py-1 rounded-full text-sm capitalize transition-colors whitespace-nowrap ${
-                  sortBy === sort
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                }`}
-              >
-                {sort}
-              </button>
-            ))}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex gap-1 overflow-x-auto">
+              {(['hot', 'new', 'top'] as const).map((sort) => (
+                <button
+                  key={sort}
+                  onClick={() => setSortBy(sort)}
+                  className={`px-3 py-1 rounded-full text-sm capitalize transition-colors whitespace-nowrap ${
+                    sortBy === sort
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                  }`}
+                >
+                  {sort}
+                </button>
+              ))}
+            </div>
+            <CreatePost 
+              forums={transformedForums}
+              selectedForumId={selectedForum !== 'all' ? selectedForum : undefined}
+              onPostCreated={refetchPosts}
+            />
           </div>
         </div>
+        
 
         {/* Mobile Post List */}
         <div className="bg-background">
           <PostList 
             posts={sortedPosts}
-            users={users}
-            forums={transformedForums}
           />
         </div>
       </div>
@@ -189,11 +203,21 @@ export default function ForumPage() {
           </div>
           <PostList 
             posts={sortedPosts}
-            users={users}
-            forums={transformedForums}
           />
         </main>
       </div>
+
+      {/* Create Post Modal */}
+      {showCreatePost && (
+        <>
+          {console.log('Rendering CreatePost modal with showCreatePost:', showCreatePost)}
+          <CreatePost
+            forums={transformedForums}
+            selectedForumId={selectedForum !== 'all' ? selectedForum : undefined}
+            onPostCreated={handlePostCreated}
+          />
+        </>
+      )}
     </div>
   );
 }

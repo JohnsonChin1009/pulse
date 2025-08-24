@@ -57,10 +57,10 @@ export default function CreateForum({ onForumCreated }: CreateForumProps) {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-3 py-2 text-sm bg-accent text-accent-foreground rounded-lg hover:bg-accent/80 transition-colors"
+        className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+        title="Create Community"
       >
         <Plus className="w-4 h-4" />
-        Create Community
       </button>
     );
   }

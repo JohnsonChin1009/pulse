@@ -43,26 +43,28 @@ export function useForums() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchForums() {
-      try {
-        const response = await fetch('/api/forums');
-        if (!response.ok) {
-          throw new Error('Failed to fetch forums');
-        }
-        const data = await response.json();
-        setForums(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
+  const fetchForums = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/forums');
+      if (!response.ok) {
+        throw new Error('Failed to fetch forums');
       }
+      const data = await response.json();
+      setForums(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchForums();
   }, []);
 
-  return { forums, loading, error, refetch: () => window.location.reload() };
+  return { forums, loading, error, refetch: fetchForums };
 }
 
 // Custom hook for fetching posts
@@ -71,27 +73,29 @@ export function usePosts(forumId?: number) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchPosts() {
-      try {
-        const url = forumId ? `/api/posts?forumId=${forumId}` : '/api/posts';
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error('Failed to fetch posts');
-        }
-        const data = await response.json();
-        setPosts(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const url = forumId ? `/api/posts?forumId=${forumId}` : '/api/posts';
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch posts');
       }
+      const data = await response.json();
+      setPosts(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchPosts();
   }, [forumId]);
 
-  return { posts, loading, error, refetch: () => window.location.reload() };
+  return { posts, loading, error, refetch: fetchPosts };
 }
 
 // Custom hook for fetching comments
@@ -100,28 +104,30 @@ export function useComments(postId: number) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchComments() {
-      try {
-        const response = await fetch(`/api/comments?postId=${postId}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch comments');
-        }
-        const data = await response.json();
-        setComments(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
+  const fetchComments = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/comments?postId=${postId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch comments');
       }
+      const data = await response.json();
+      setComments(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     if (postId) {
       fetchComments();
     }
   }, [postId]);
 
-  return { comments, loading, error, refetch: () => window.location.reload() };
+  return { comments, loading, error, refetch: fetchComments };
 }
 
 // Utility functions for API calls

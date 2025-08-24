@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { forumAPI } from '@/lib/hooks/useForum';
 import { Plus, X, Send } from 'lucide-react';
 
 interface CreatePostProps {
-  forums: Array<{
+  // For main forum page interface
+  forums?: Array<{
     id: string;
     name: string;
     description: string;
@@ -14,58 +15,115 @@ interface CreatePostProps {
   }>;
   selectedForumId?: string;
   onPostCreated?: () => void;
+  
+  // For specific forum page interface
+  forumId?: number;
+  onClose?: () => void;
 }
 
-export default function CreatePost({ forums, selectedForumId, onPostCreated }: CreatePostProps) {
+export default function CreatePost({ forums, selectedForumId, onPostCreated, forumId, onClose }: CreatePostProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [forumId, setForumId] = useState(selectedForumId || '');
+  const [selectedForum, setSelectedForum] = useState(selectedForumId || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availableForums, setAvailableForums] = useState(forums || []);
+
+  // If forumId is provided, this is being used in specific forum page mode
+  const isSpecificForumMode = !!forumId;
+  
+  // If in specific forum mode, set isOpen to true by default and fetch forums if not provided
+  useEffect(() => {
+    if (isSpecificForumMode) {
+      setIsOpen(true);
+      setSelectedForum(forumId.toString());
+      
+      // Fetch forums if not provided
+      if (!forums || forums.length === 0) {
+        const fetchForums = async () => {
+          try {
+            const response = await fetch('/api/forums');
+            if (response.ok) {
+              const forumsData = await response.json();
+              const transformedForums = forumsData.map((forum: any) => ({
+                id: forum.id.toString(),
+                name: forum.topic,
+                description: forum.description || '',
+                color: 'bg-blue-500',
+                memberCount: 0
+              }));
+              setAvailableForums(transformedForums);
+            }
+          } catch (error) {
+            console.error('Error fetching forums:', error);
+          }
+        };
+        fetchForums();
+      }
+    }
+  }, [isSpecificForumMode, forumId, forums]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !description.trim() || !forumId || isSubmitting) return;
+    if (!title.trim() || !description.trim() || !selectedForum || isSubmitting) return;
 
     setIsSubmitting(true);
     
     try {
       // For now, we'll use a placeholder user ID
       // In a real app, you'd get this from authentication context
-      //placeholder-user-id for now
       const userId = '46e7628d-a464-43f6-a6ea-1163f7bae42b'; // TODO: Get from auth context
       
-      await forumAPI.createPost({
+      console.log('Creating post with data:', {
         title: title.trim(),
         description: description.trim(),
-        forum_id: parseInt(forumId),
+        forum_id: parseInt(selectedForum),
         user_id: userId,
       });
+      
+      const response = await forumAPI.createPost({
+        title: title.trim(),
+        description: description.trim(),
+        forum_id: parseInt(selectedForum),
+        user_id: userId,
+      });
+      
+      console.log('Post created successfully:', response);
       
       // Reset form
       setTitle('');
       setDescription('');
-      setForumId(selectedForumId || '');
-      setIsOpen(false);
+      setSelectedForum(selectedForumId || '');
+      
+      if (isSpecificForumMode) {
+        onClose?.();
+      } else {
+        setIsOpen(false);
+      }
       
       // Notify parent to refresh
       onPostCreated?.();
     } catch (error) {
       console.error('Error creating post:', error);
-      // TODO: Show error toast
+      alert('Failed to create post. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleClose = () => {
-    setIsOpen(false);
+    if (isSpecificForumMode) {
+      onClose?.();
+    } else {
+      setIsOpen(false);
+    }
     setTitle('');
     setDescription('');
-    setForumId(selectedForumId || '');
+    setSelectedForum(selectedForumId || '');
   };
 
-  if (!isOpen) {
+  // For main forum page - show button when not open
+  if (!isSpecificForumMode && !isOpen) {
     return (
       <button
         onClick={() => setIsOpen(true)}
@@ -75,6 +133,11 @@ export default function CreatePost({ forums, selectedForumId, onPostCreated }: C
         Create Post
       </button>
     );
+  }
+
+  // Don't render anything if not open and not in specific forum mode
+  if (!isSpecificForumMode && !isOpen) {
+    return null;
   }
 
   return (
@@ -93,25 +156,28 @@ export default function CreatePost({ forums, selectedForumId, onPostCreated }: C
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {/* Forum Selection */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Choose a community
-            </label>
-            <select
-              value={forumId}
-              onChange={(e) => setForumId(e.target.value)}
-              className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-            >
-              <option value="">Select a forum...</option>
-              {forums.map((forum) => (
-                <option key={forum.id} value={forum.id}>
-                  r/{forum.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Forum Selection - only show if not in specific forum mode or if multiple forums available */}
+          {(!isSpecificForumMode || availableForums.length > 1) && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Choose a community
+              </label>
+              <select
+                value={selectedForum}
+                onChange={(e) => setSelectedForum(e.target.value)}
+                className="w-full p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                required
+                disabled={isSpecificForumMode}
+              >
+                <option value="">Select a forum...</option>
+                {availableForums.map((forum) => (
+                  <option key={forum.id} value={forum.id}>
+                    r/{forum.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Title */}
           <div className="space-y-2">
@@ -159,7 +225,7 @@ export default function CreatePost({ forums, selectedForumId, onPostCreated }: C
             </button>
             <button
               type="submit"
-              disabled={!title.trim() || !description.trim() || !forumId || isSubmitting}
+              disabled={!title.trim() || !description.trim() || !selectedForum || isSubmitting}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />

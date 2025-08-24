@@ -1,13 +1,26 @@
-import { ForumPost, User, Forum } from '@/lib/mockData';
 import PostCard from './PostCard';
 
-interface PostListProps {
-  posts: ForumPost[];
-  users: User[];
-  forums: Forum[];
+// Updated interfaces to match the real data structure from database
+interface RealPost {
+  id: string;
+  title: string;
+  description: string;
+  datePost: string | null;
+  upvotes: number | null;
+  downvotes: number | null;
+  forumId: number;
+  userId: string;
+  username: string | null;
+  forumName: string | null;
+  commentCount: number;
+  userAvatar?: string | null;
 }
 
-export default function PostList({ posts, users, forums }: PostListProps) {
+interface PostListProps {
+  posts: RealPost[];
+}
+
+export default function PostList({ posts }: PostListProps) {
   if (posts.length === 0) {
     return (
       <div className="text-center py-12">
@@ -22,13 +35,43 @@ export default function PostList({ posts, users, forums }: PostListProps) {
   return (
     <div className="space-y-4">
       {posts.map((post) => {
-        const user = users.find(u => u.id === post.userId);
-        const forum = forums.find(f => f.id === post.forumId);
+
+console.log(post)
+
+        // Transform real data to match PostCard's expected format
+        const transformedPost = {
+          id: post.id,
+          title: post.title,
+          description: post.description,
+          datePost: post.datePost || new Date().toISOString(),
+          upvotes: post.upvotes || 0,
+          downvotes: post.downvotes || 0,
+          forumId: post.forumId.toString(),
+          userId: post.userId,
+          commentCount: post.commentCount,
+          username: post.username || 'Unknown',
+          forumName: post.forumName || 'Unknown Forum'
+        };
+
+        // Create user object for PostCard
+        const user = {
+          id: post.userId,
+          username: post.username || 'Unknown',
+        };
+
+        // Create forum object for PostCard
+        const forum = {
+          id: post.forumId.toString(),
+          name: post.forumName || 'Unknown Forum',
+          description: '',
+          color: 'bg-blue-500', // Default color
+          memberCount: 0 // We don't have member count in current schema
+        };
         
         return (
           <PostCard
             key={post.id}
-            post={post}
+            post={transformedPost}
             user={user}
             forum={forum}
           />
