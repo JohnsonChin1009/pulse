@@ -55,6 +55,17 @@ export default function ForumPage() {
         setLoading(true);
         setError(null);
 
+        // Always fetch all forums for sidebar first
+        try {
+          const forumsResponse = await fetch("/api/forums");
+          if (forumsResponse.ok) {
+            const forums = await forumsResponse.json();
+            setAllForums(forums);
+          }
+        } catch (forumsErr) {
+          console.error("Error fetching forums for sidebar:", forumsErr);
+        }
+
         // Fetch the specific forum
         const forumResponse = await fetch(`/api/forums/${forumId}`);
         if (!forumResponse.ok) {
@@ -75,13 +86,6 @@ export default function ForumPage() {
         const posts = await postsResponse.json();
         setForumPosts(posts);
 
-        // Fetch all forums for sidebar
-        const forumsResponse = await fetch('/api/forums');
-        if (!forumsResponse.ok) {
-          throw new Error('Failed to fetch forums');
-        }
-        const forums = await forumsResponse.json();
-        setAllForums(forums);
 
       } catch (err) {
         console.error('Error fetching forum data:', err);
@@ -142,7 +146,7 @@ export default function ForumPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <ForumHeader />
+        <ForumHeader onMenuClick={() => setSidebarOpen(true)} />
         <div className="flex max-w-7xl mx-auto">
           <main className="flex-1 p-4">
             <div className="text-center py-12">
@@ -159,7 +163,7 @@ export default function ForumPage() {
   if (error || !currentForum) {
     return (
       <div className="min-h-screen bg-background">
-        <ForumHeader />
+        <ForumHeader onMenuClick={() => setSidebarOpen(true)} />
         <div className="flex max-w-7xl mx-auto">
           <ForumSidebar 
             selectedForum={forumId}
