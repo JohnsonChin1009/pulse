@@ -218,6 +218,17 @@ export default function LiveChatPage() {
     };
   }, [currentUserId, selectedConversation?.id]);
 
+  
+  useEffect(() => {
+    if (!selectedConversation?.id) return;
+
+    const container = chatContainerRef.current;
+    if (!container) return;
+
+    // scroll smoothly to bottom
+    container.scrollTop = container.scrollHeight;
+  }, [selectedConversation?.id]);
+
 
   // real time session push (new chats being created)
   useEffect(() => {
