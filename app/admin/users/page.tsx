@@ -1,13 +1,20 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Search,
   Filter,
@@ -15,8 +22,6 @@ import {
   Eye,
   Ban,
   Mail,
-  Heart,
-  Activity,
   UserCheck,
   Stethoscope,
   FileText,
@@ -25,113 +30,309 @@ import {
   AlertTriangle,
   Users,
   TrendingUp,
-} from "lucide-react"
+  X,
+  UserCheckIcon,
+} from "lucide-react";
+import { useAuth } from "../authContext";
+import Link from "next/link";
+import toast from "react-hot-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { PractitionerWithUser } from "@/app/api/admin/users/practitioner/fetch/route";
+import { PractitionerReviewDialog } from "./practitionerPreviewDialog";
 
-const users = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    status: "active",
-    hearts: 10,
-    questsCompleted: 5,
-    joinDate: "2023-01-01",
-    lastActive: "2023-02-01",
-    avatar: "/john.jpg",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    status: "inactive",
-    hearts: 5,
-    questsCompleted: 5,
-    joinDate: "2023-01-01",
-    lastActive: "2023-02-01",
-    avatar: "/john.jpg",
-  },
-  {
-    id: 3,
-    name: "Ben Smith",
-    email: "ben@example.com",
-    status: "suspended",
-    hearts: 5,
-    questsCompleted: 5,
-    joinDate: "2023-01-01",
-    lastActive: "2023-02-01",
-    avatar: "/john.jpg",
-  },
-]
+export type UserStatus = "active" | "inactive" | "suspended";
 
-const practitioners = [
-  {
-    id: 1,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    status: "verified",
-    specialty: "Cardiology",
-    documents: ["doc1.pdf", "doc2.pdf"],
-    license: "12345",
-    joinDate: "2023-01-01",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    status: "rejected",
-    specialty: "Cardiology",
-    documents: ["doc1.pdf", "doc2.pdf"],
-    license: "12345",
-    joinDate: "2023-01-01",
-  },
-  {
-    id: 3,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    status: "pending",
-    specialty: "Cardiology",
-    documents: ["doc1.pdf", "doc2.pdf"],
-    license: "12345",
-    joinDate: "2023-01-01",
-  },
-]
+export interface Application {
+  id: number,
+  userId: string,
+  username: string,
+  gender: string,
+  email: string,
+  joined_date: string,
+  submission_date: string,
+  license_url: string,
+  status: string,
+  updated_at: string,
+  profile_url: string
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  status: UserStatus;
+  joinDate: string;
+  lastActive: string;
+  avatar: string | null;
+}
+
+export interface Practitioner {
+  id: number;
+  name: string;
+  email: string;
+  status: string;
+  avatar: string | null;
+  submissionDate: string;
+  joinDate: string;
+}
+
+interface Stats {
+  total: number;
+  online: number;
+  offline: number;
+  suspended: number;
+}
+
+interface PractitionerStats {
+  total: number;
+  pending: number;
+  verified: number;
+  rejected: number;
+}
+
+const formatDateTime = (dateStr: string | null) => {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${day}/${month}/${year} ${hours}:${minutes}`;
+};
+
 
 export default function UsersPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [verifyStatusFilter, setVerifyStatusFilter] = useState("all")
-  const [activeTab, setActiveTab] = useState("users")
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [verifyStatusFilter, setVerifyStatusFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("users");
+  const [countData, setCountData] = useState<Stats | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [open, setOpen] = useState(false);
+  const [practitionerStats, setPractitionerStats] =
+    useState<PractitionerStats | null>(null);
+  const [openPractitionerDialog, setOpenPractitionerDialog] = useState(false);
+  const [selectedPractitioner, setSelectedPractitioner] =
+    useState<Practitioner | null>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | null>(
+    null
+  );
 
-  const [userList, setUserList] = useState(users)
+  const [userList, setUserList] = useState<User[] | null>(null);
 
-  type UserStatus = "active" | "inactive" | "suspended"
+  const [practitioners, setPractitioners] = useState<Practitioner[]>([]);
 
-  function handleStatusChange(userId: number, newStatus: UserStatus) {
-    setUserList(prev =>
-      prev.map(u => (u.id === userId ? { ...u, status: newStatus } : u))
-    )
-    // optional: await fetch(`/api/users/${userId}/status`, { method: "PUT", body: JSON.stringify({ status: newStatus }) })
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
+
+  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+
+  const { user: sessionUser } = useAuth();
+
+  const handlePractitionerStatus = async (
+    practitionerId: number,
+    action: "approve" | "reject"
+  ) => {
+    try {
+      const res = await fetch(`/api/admin/users/practitioner/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          practitionerId,
+          status: action === "approve" ? "verified" : "rejected",
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update practitioner status");
+
+      toast.success("Practitioner status updated successfully");
+      setPractitioners((prev) =>
+        prev.map((p) =>
+          p.id === practitionerId
+            ? { ...p, status: action === "approve" ? "verified" : "rejected" }
+            : p
+        )
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update practitioner status");
+    } finally {
+      setOpenPractitionerDialog(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchPractitionerStats = async () => {
+      try {
+        const response = await fetch("/api/admin/users/practitioner/fetch");
+        if (!response.ok) throw new Error("Failed to fetch practitioner stats");
+
+        const rawData: PractitionerWithUser[] = await response.json();
+
+        const transformed: Practitioner[] = rawData.map((row) => ({
+          id: row.practitioner.id,
+          name: row.user.username || "",
+          email: row.user.email || "",
+          status: row.practitioner.status || "pending",
+          avatar: row.user.profile_picture_url || null,
+          submissionDate: formatDateTime(row.practitioner.submitted_at),
+          joinDate: formatDateTime(row.user.created_at),
+        }));
+
+        setPractitioners(transformed);
+      } catch (error) {
+        console.error("Error fetching practitioner stats:", error);
+      }
+    };
+
+    fetchPractitionerStats();
+  }, []);
+
+  // fetch practitioner stats
+  useEffect(() => {
+    const fetchPractitionerStats = async () => {
+      try {
+        const response = await fetch("/api/admin/users/practitioner/stats");
+        if (!response.ok) throw new Error("Failed to fetch practitioner stats");
+
+        const data = await response.json();
+        setPractitionerStats(data);
+      } catch (error) {
+        console.error("Error fetching practitioner stats:", error);
+      }
+    };
+
+    fetchPractitionerStats();
+  }, []);
+
+  // fetch all user from the db
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("/api/admin/users/user-list");
+        if (!response.ok) throw new Error("Failed to fetch users");
+
+        const data = await response.json();
+
+        const normalized: User[] = data.map((u: any) => ({
+          id: u.id,
+          name: u.username ?? "",
+          email: u.email ?? "",
+          avatar: u.profile_picture_url ?? null,
+          joinDate: u.created_at ?? "-",
+          lastActive: u.updated_at ?? "-",
+          status:
+            u.suspension_status === true
+              ? "suspended"
+              : u.online_status === true
+              ? "active"
+              : "inactive",
+        }));
+
+        setUserList(normalized);
+      } catch (error) {
+        console.error("Error fetching user list:", error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  // fetch card status on user tab
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch("/api/admin/users/stats");
+        if (!response.ok) {
+          throw new Error("Failed to fetch stats");
+        }
+        const data = await response.json();
+        setCountData(data);
+      } catch (error) {
+        console.error("Error fetching user stats:", error);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  async function handleStatusChange(userId: string, currentStatus: UserStatus) {
+    try {
+      const suspend = currentStatus !== "suspended";
+
+      const res = await fetch("/api/admin/users/suspend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, suspend }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update user");
+
+      const updatedUser: {
+        suspension_status: boolean;
+        online_status: boolean;
+      } = await res.json();
+
+      toast.success("User suspension status updated.");
+
+      setUserList(
+        (prev) =>
+          prev?.map((u) =>
+            u.id === userId
+              ? {
+                  ...u,
+                  suspension_status: updatedUser.suspension_status,
+                  status: updatedUser.suspension_status
+                    ? "suspended"
+                    : updatedUser.online_status
+                    ? "active"
+                    : "inactive",
+                }
+              : u
+          ) || []
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error?.("Failed to update user suspension status.");
+    }
   }
 
-  const filteredUsers = userList.filter((user) => {
-    if (statusFilter !== "all" && user.status !== statusFilter) return false
+  const filteredUsers = userList?.filter((user) => {
+    if (!user) return false;
+    const name = user.name ?? "";
+    const email = user.email ?? "";
+
+    if (statusFilter !== "all" && user.status !== statusFilter) return false;
     if (
-      !user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      !name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !email.toLowerCase().includes(searchTerm.toLowerCase())
     )
-      return false
-    return true
-  })
+      return false;
+    return true;
+  });
 
   const filteredPractitioners = practitioners.filter((practitioner) => {
-    if (verifyStatusFilter !== "all" && practitioner.status !== verifyStatusFilter) return false
+    if (
+      verifyStatusFilter !== "all" &&
+      practitioner.status !== verifyStatusFilter
+    )
+      return false;
     if (
       !practitioner.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
       !practitioner.email.toLowerCase().includes(searchTerm.toLowerCase())
     )
-      return false
-    return true
-  })
+      return false;
+    return true;
+  });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -142,117 +343,152 @@ export default function UsersPage() {
             <CheckCircle className="w-3 h-3 mr-1" />
             {status === "active" ? "Active" : "Verified"}
           </Badge>
-        )
+        );
       case "inactive":
         return (
           <Badge variant="secondary" className="bg-muted text-muted-foreground">
             Inactive
           </Badge>
-        )
+        );
       case "suspended":
         return (
-          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
+          <Badge
+            variant="destructive"
+            className="bg-destructive/10 text-destructive border-destructive/20"
+          >
             Suspended
           </Badge>
-        )
+        );
       case "pending":
         return (
           <Badge className="bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100">
             <Clock className="w-3 h-3 mr-1" />
             Pending
           </Badge>
-        )
+        );
       case "rejected":
         return (
-          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
+          <Badge
+            variant="destructive"
+            className="bg-destructive/10 text-destructive border-destructive/20"
+          >
             <AlertTriangle className="w-3 h-3 mr-1" />
             Rejected
           </Badge>
-        )
+        );
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge variant="outline">{status}</Badge>;
     }
-  }
+  };
 
-  const UserCard = ({ user }: { user: (typeof users)[0] }) => (
+
+  const UserCard = ({
+    user,
+    handleStatusChange,
+  }: {
+    user: User;
+    handleStatusChange: (id: string, status: UserStatus) => void;
+  }) => (
     <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/50 hover:border-primary/20">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar className="w-12 h-12 ring-2 ring-primary/10">
-              <AvatarImage src={user.avatar || "/test"} />
+              <AvatarImage
+                src={user.avatar || "/images/default.jpg"}
+                alt={user.name || "User"}
+              />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                {user.name
+                {(user.name ?? "NA")
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-serif font-semibold text-foreground">{user.name}</h3>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
+              <h3 className="font-serif font-semibold text-foreground">
+                {user.name ?? "Unknown User"}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {user.email ?? "No email"}
+              </p>
             </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>
-                <Eye className="w-4 h-4 mr-2" />
-                View Profile
+                <Eye className="w-4 h-4 mr-2" /> View Profile
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Mail className="w-4 h-4 mr-2" />
-                Send Message
-              </DropdownMenuItem>
-                <DropdownMenuItem
-                  className={user.status === "suspended" ? "" : "text-destructive"}
-                  onClick={() =>
-                    handleStatusChange(
-                      user.id,
-                      user.status === "suspended" ? "active" : "suspended"
-                    )
-                  }
-                >
-                  <Ban className="w-4 h-4 mr-2" />
-                  {user.status === "suspended" ? "Unsuspend User" : "Suspend User"}
+              {user.id !== sessionUser?.id && (
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={`/admin/chat?to=${user.name}`}
+                    className="flex items-center"
+                  >
+                    <Mail className="w-4 h-4 mr-2" /> Send Message
+                  </Link>
                 </DropdownMenuItem>
+              )}
+              {user.id !== sessionUser?.id && (
+                <DropdownMenuItem
+                  className={`flex items-center ${
+                    user.status === "suspended"
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }`}
+                  onClick={() => {
+                    setSelectedUser(user);
+                    setOpen(true);
+                  }}
+                >
+                  <Ban
+                    className={`w-4 h-4 mr-2 ${
+                      user.status === "suspended"
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  />
+                  {user.status === "suspended"
+                    ? "Unsuspend User"
+                    : "Suspend User"}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
         <div className="flex items-center justify-between mb-4">
           {getStatusBadge(user.status)}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Heart className="w-4 h-4 text-red-500" />
-              <span className="font-medium">{user.hearts}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Activity className="w-4 h-4 text-blue-500" />
-              <span className="font-medium">{user.questsCompleted}</span>
-            </div>
-          </div>
         </div>
 
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>Joined {user.joinDate}</span>
-          <span>Active {user.lastActive}</span>
+          <span>Joined: {formatDateTime(user.joinDate)}</span>
+          <span>Last Active: {formatDateTime(user.lastActive)}</span>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 
-  const PractitionerCard = ({ practitioner }: { practitioner: (typeof practitioners)[0] }) => (
-    <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/50 hover:border-primary/20">
+  const PractitionerCard = ({
+    practitioner,
+  }: {
+    practitioner: (typeof practitioners)[0];
+  }) => (
+    <Card className="group mb-5 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/50 hover:border-primary/20">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar className="w-12 h-12 ring-2 ring-primary/10">
-              <AvatarImage src="/placeholder.svg" />
+              <AvatarImage src={practitioner.avatar || "/images/default.jpg"} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                 {practitioner.name
                   .split(" ")
@@ -261,29 +497,76 @@ export default function UsersPage() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-serif font-semibold text-foreground">{practitioner.name}</h3>
-              <p className="text-sm text-muted-foreground">{practitioner.email}</p>
-              <p className="text-xs text-primary font-medium">{practitioner.specialty}</p>
+              <h3 className="font-serif font-semibold text-foreground">
+                {practitioner.name}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {practitioner.email}
+              </p>
             </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={async () => {
+                  try {
+                    const res = await fetch(`/api/admin/users/practitioner/review-dialog/${practitioner.id}`); 
+                    if (!res.ok) throw new Error("Failed to fetch application");
+
+                    const app: Application = await res.json();
+                    setSelectedApplication(app);
+                    setReviewDialogOpen(true);
+                  } catch (err) {
+                    console.error(err);
+                    toast.error("Failed to fetch application");
+                  }
+                }}
+              >
                 <Eye className="w-4 h-4 mr-2" />
                 Review Application
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <FileText className="w-4 h-4 mr-2" />
-                View Profile
+
+              <DropdownMenuItem
+                className="text-green-500"
+                onClick={() => {
+                  setSelectedPractitioner(practitioner);
+                  setActionType("approve");
+                  setOpenPractitionerDialog(true);
+                }}
+              >
+                <UserCheckIcon className="w-4 h-4 mr-2 text-green-500" />
+                Approve Application
               </DropdownMenuItem>
+
+              <DropdownMenuItem
+                className="text-red-500"
+                onClick={() => {
+                  setSelectedPractitioner(practitioner);
+                  setActionType("reject");
+                  setOpenPractitionerDialog(true);
+                }}
+              >
+                <X className="w-4 h-4 mr-2 text-red-500" />
+                Reject Application
+              </DropdownMenuItem>
+
               <DropdownMenuItem>
-                <Mail className="w-4 h-4 mr-2" />
-                Send Message
+                <Link
+                  href={`/admin/chat?to=${practitioner.name}`}
+                  className="flex items-center"
+                >
+                  <Mail className="w-4 h-4 mr-4" /> Send Message
+                </Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -293,44 +576,50 @@ export default function UsersPage() {
           {getStatusBadge(practitioner.status)}
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <FileText className="w-4 h-4" />
-            <span>{practitioner.documents.length} docs</span>
+            <span>1 doc</span>
           </div>
         </div>
 
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span className="font-mono">{practitioner.license}</span>
-          <span>Joined {practitioner.joinDate}</span>
+          <span>Submitted: {practitioner.submissionDate}</span>
+          <span>Joined: {practitioner.joinDate}</span>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 
   return (
     <div className="min-h-screen bg-background">
       <div className="p-6 max-w-7xl mx-auto pb-25 md:pb-0 mb-0 md:mb-12">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="font-montserrat font-bold  text-3xl sm:text-4xl text-foreground mb-2">User Management</h1>
+            <h1 className="font-montserrat font-bold  text-3xl sm:text-4xl text-foreground mb-2">
+              User Management
+            </h1>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full max-w-md grid-cols-2 bg-muted/50 rounded-xl shadow-md border border-muted-foreground/10">
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
+          <TabsList className="flex w-full max-w-md  bg-muted/50 rounded-xl shadow-md border border-muted-foreground/10">
             <TabsTrigger
-                value="users"
-                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_3px_0_0_#000] transition-all"
+              value="users"
+              className="flex overflow-hidden items-center gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_3px_0_0_#000] transition-all"
             >
-                <UserCheck className="w-4 h-4" />
-                App Users
+              <UserCheck className="w-4 h-4" />
+              App Users
             </TabsTrigger>
             <TabsTrigger
-                value="practitioners"
-                className="flex items-center gap-2 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_3px_0_0_#000] transition-all"
+              value="practitioners"
+              className="flex items-center gap-2 rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_3px_0_0_#000] transition-all"
             >
-                <Stethoscope className="w-4 h-4" />
-                Practitioners
+              <Stethoscope className="w-4 h-4" />
+              Practitioners
             </TabsTrigger>
-            </TabsList>
+          </TabsList>
           <TabsContent value="users" className="space-y-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <Card className="border-border/50 hover:border-primary/20 transition-colors">
@@ -340,8 +629,12 @@ export default function UsersPage() {
                       <Users className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Total Users</p>
-                      <p className="text-2xl font-bold text-foreground">123</p>
+                      <p className="text-sm text-muted-foreground">
+                        Total Users
+                      </p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {countData?.total}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -354,8 +647,12 @@ export default function UsersPage() {
                       <TrendingUp className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Active Users</p>
-                      <p className="text-2xl font-bold text-foreground">98</p>
+                      <p className="text-sm text-muted-foreground">
+                        Active Users
+                      </p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {countData?.online}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -369,7 +666,9 @@ export default function UsersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Inactive</p>
-                      <p className="text-2xl font-bold text-foreground">23</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {countData?.offline}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -383,7 +682,9 @@ export default function UsersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Suspended</p>
-                      <p className="text-2xl font-bold text-foreground">2</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {countData?.suspended}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -413,20 +714,38 @@ export default function UsersPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => setStatusFilter("all")}>All Users</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter("active")}>Active</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter("inactive")}>Inactive</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter("suspended")}>Suspended</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setStatusFilter("all")}>
+                        All Users
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setStatusFilter("active")}
+                      >
+                        Active
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setStatusFilter("inactive")}
+                      >
+                        Inactive
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setStatusFilter("suspended")}
+                      >
+                        Suspended
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
               </CardContent>
             </Card>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredUsers.map((user) => (
-                  <UserCard key={user.id} user={user} />
-                ))}
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredUsers?.map((user) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  handleStatusChange={handleStatusChange}
+                />
+              ))}
+            </div>
           </TabsContent>
 
           <TabsContent value="practitioners" className="space-y-6">
@@ -438,8 +757,12 @@ export default function UsersPage() {
                       <Stethoscope className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Total Practitioners</p>
-                      <p className="text-2xl font-bold text-foreground">156</p>
+                      <p className="text-sm text-muted-foreground">
+                        Total Requests
+                      </p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {practitionerStats?.total}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -453,7 +776,9 @@ export default function UsersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Verified</p>
-                      <p className="text-2xl font-bold text-foreground">142</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {practitionerStats?.verified}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -466,8 +791,12 @@ export default function UsersPage() {
                       <Clock className="w-5 h-5 text-amber-600" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Pending Review</p>
-                      <p className="text-2xl font-bold text-foreground">12</p>
+                      <p className="text-sm text-muted-foreground">
+                        Pending Review
+                      </p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {practitionerStats?.pending}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -481,7 +810,9 @@ export default function UsersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Rejected</p>
-                      <p className="text-2xl font-bold text-foreground">2</p>
+                      <p className="text-2xl font-bold text-foreground">
+                        {practitionerStats?.rejected}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -507,29 +838,150 @@ export default function UsersPage() {
                         className="h-11 px-4 rounded-xl border-border/50 hover:border-primary/50 bg-transparent"
                       >
                         <Filter className="w-4 h-4 mr-2" />
-                        Status: {verifyStatusFilter === "all" ? "All" : verifyStatusFilter}
+                        Status:{" "}
+                        {verifyStatusFilter === "all"
+                          ? "All"
+                          : verifyStatusFilter}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => setVerifyStatusFilter("all")}>
+                      <DropdownMenuItem
+                        onClick={() => setVerifyStatusFilter("all")}
+                      >
                         All Practitioners
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setVerifyStatusFilter("verified")}>Verified</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setVerifyStatusFilter("pending")}>Pending</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setVerifyStatusFilter("rejected")}>Rejected</DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setVerifyStatusFilter("verified")}
+                      >
+                        Verified
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setVerifyStatusFilter("pending")}
+                      >
+                        Pending
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setVerifyStatusFilter("rejected")}
+                      >
+                        Rejected
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
               </CardContent>
             </Card>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredPractitioners.map((practitioner) => (
-                  <PractitionerCard key={practitioner.id} practitioner={practitioner} />
-                ))}
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredPractitioners.map((practitioner) => (
+                <PractitionerCard
+                  key={practitioner.id}
+                  practitioner={practitioner}
+                />
+              ))}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog
+        open={openPractitionerDialog}
+        onOpenChange={setOpenPractitionerDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {actionType === "approve"
+                ? "Approve Practitioner Application?"
+                : "Reject Practitioner Application?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {actionType === "approve"
+                ? "Approve Practitioner's Application?"
+                : "Reject Pracittioner's Application?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex justify-end gap-2">
+            <AlertDialogCancel asChild>
+              <Button variant="outline" className="rounded-xl">
+                Cancel
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                className="w-full sm:w-25 rounded-xl"
+                variant={actionType === "reject" ? "destructive" : "default"}
+                  onClick={() => {
+                    if (actionType && selectedApplication) {
+                      handlePractitionerStatus(selectedApplication.id, actionType);
+                    } else if (actionType && selectedPractitioner) {
+                      handlePractitionerStatus(selectedPractitioner.id, actionType);
+                    }
+                  }}
+                >
+                {actionType === "approve" ? "Approve" : "Reject"}
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {selectedUser?.status === "suspended"
+                ? "Unsuspend this user?"
+                : "Suspend this user?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedUser?.status === "suspended"
+                ? "The user will regain access to their account."
+                : "This will immediately prevent the user from logging in."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex justify-end gap-2">
+            <AlertDialogCancel asChild>
+              <Button variant="outline" className="rounded-xl">
+                Cancel
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                className="w-full sm:w-25 rounded-xl"
+                variant={
+                  selectedUser?.status === "suspended"
+                    ? "default"
+                    : "destructive"
+                }
+                onClick={() => {
+                  if (selectedUser) {
+                    handleStatusChange(selectedUser.id, selectedUser.status);
+                  }
+                  setOpen(false);
+                }}
+              >
+                {selectedUser?.status === "suspended" ? "Unsuspend" : "Suspend"}
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <PractitionerReviewDialog
+          open={reviewDialogOpen}
+          onOpenChange={setReviewDialogOpen}
+          application={selectedApplication}
+          onApprove={() => {
+            if (!selectedApplication) return;
+              setActionType("approve");
+              setOpenPractitionerDialog(true); 
+          }}
+          onReject={() => {
+            if (!selectedApplication) return;
+            setActionType("reject");
+            setOpenPractitionerDialog(true);
+          }}
+      />
+
     </div>
-  )
+  );
 }

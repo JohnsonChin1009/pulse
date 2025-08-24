@@ -2,6 +2,7 @@
 import AdminNavigator from "@/app/admin/navigator";
 import { AuthProvider } from "./authContext";
 
+
 export default function AdminLayout({
   children,
 }: Readonly<{

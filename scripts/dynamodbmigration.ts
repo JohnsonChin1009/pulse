@@ -1,5 +1,11 @@
-import { CreateTableCommand, ListTablesCommand, ScalarAttributeType, KeyType } from "@aws-sdk/client-dynamodb";
-import ddbDocClient from "@/lib/db/dynamodbconnection";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { 
+  CreateTableCommand, 
+  ListTablesCommand, 
+  ScalarAttributeType, 
+  KeyType 
+} from "@aws-sdk/client-dynamodb";
+import ddbDocClient from "../lib/db/dynamodbconnection";
 
 async function createTableIfNotExists(tableName: string, createFn: () => Promise<void>) {
   try {
@@ -8,7 +14,7 @@ async function createTableIfNotExists(tableName: string, createFn: () => Promise
       console.log(`Creating table: ${tableName}`);
       await createFn();
     } else {
-      console.log(`Table ${tableName} already exists`);
+      console.log(`Table ${tableName} already exists — skipping creation`);
     }
   } catch (err) {
     console.error(`Error checking/creating table ${tableName}:`, err);
@@ -31,8 +37,12 @@ async function createChatSessionsTable() {
     const command = new CreateTableCommand(params);
     const response = await ddbDocClient.send(command);
     console.log("ChatSessions table created:", response.TableDescription?.TableName);
-  } catch (err) {
-    console.error("Error creating ChatSessions table:", err);
+  } catch (err: any) {
+    if (err.name === "ResourceInUseException") {
+      console.log("ChatSessions table already exists, not recreating.");
+    } else {
+      console.error("Error creating ChatSessions table:", err);
+    }
   }
 }
 
@@ -40,11 +50,11 @@ async function createChatMessagesTable() {
   const params = {
     TableName: "ChatMessages",
     AttributeDefinitions: [
-      { AttributeName: "chatId", AttributeType: ScalarAttributeType.S },
+      { AttributeName: "sessionId", AttributeType: ScalarAttributeType.S },
       { AttributeName: "timestamp", AttributeType: ScalarAttributeType.S },
     ],
     KeySchema: [
-      { AttributeName: "chatId", KeyType: KeyType.HASH },
+      { AttributeName: "sessionId", KeyType: KeyType.HASH },
       { AttributeName: "timestamp", KeyType: KeyType.RANGE },
     ],
     BillingMode: "PAY_PER_REQUEST" as const,
@@ -54,13 +64,16 @@ async function createChatMessagesTable() {
     const command = new CreateTableCommand(params);
     const response = await ddbDocClient.send(command);
     console.log("ChatMessages table created:", response.TableDescription?.TableName);
-  } catch (err) {
-    console.error("Error creating ChatMessages table:", err);
+  } catch (err: any) {
+    if (err.name === "ResourceInUseException") {
+      console.log(" hatMessages table already exists, not recreating.");
+    } else {
+      console.error("Error creating ChatMessages table:", err);
+    }
   }
 }
 
-// Run both tables creation on system start
-async function initDynamoDB() {
+export async function initDynamoDB() {
   await createTableIfNotExists("ChatSessions", createChatSessionsTable);
   await createTableIfNotExists("ChatMessages", createChatMessagesTable);
 }

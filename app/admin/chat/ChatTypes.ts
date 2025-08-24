@@ -1,15 +1,4 @@
-export interface ChatSession {
-  id: string 
-  user: {
-    name: string 
-    avatar: string 
-    status: string
-  }
-  lastMessage: string 
-  timestamp: string 
-  unread: number
-}
-
+// done
 export interface AvailableUser {
   id: string
   name: string
@@ -17,19 +6,33 @@ export interface AvailableUser {
   status: string
 }
 
-export type ChatMessages = {
-  [key: string]: Message[]
+export interface Attachment{
+  name: string; // file name
+  url: string; // s3 url
+  type: string; // mime type e.g. image/png
+  size: number; // in bytes (number instead of string)
 }
 
-export type Message = {
+export interface ChatSession {
   id: string
-  sender: string
-  content: string
+  participantIds: string[] // add current user and pointed user
+  lastMessage: string
   timestamp: string
-  attachment?: {
-    name: string
-    url: string
-    type: string
-    size: string
-  }
+  unread: Record<string, number>; 
 }
+
+export interface ChatMessage {
+  id: string; // messageId
+  sessionId: string; // link to ChatSession
+  senderId: string; // who sent it
+  content: string; // text message
+  attachments?: {
+    name: string; // file name
+    url: string; // s3 url
+    type: string; // mime type e.g. image/png
+    size: number; // in bytes (number instead of string)
+  }[];
+  timestamp: string; // ISO string
+}
+
+

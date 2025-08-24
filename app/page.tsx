@@ -16,8 +16,13 @@ export default async function LandingPage() {
     "sohjs.work@gmail.com",
     "admin"
   );
-
-  console.log("Mock JWT: " + token);
+  const token2 = await generateToken(
+    "ac54b06a-e818-4b1e-b1f1-b369b7c478d5",
+    "jackie.shjs@gmail.com",
+    "admin"
+  );
+  console.log("Mock JWT (soh): " + token);
+  console.log("Mock JWT (jssoh): " + token2);
 
   return (
     <div className="min-h-screen bg-white">

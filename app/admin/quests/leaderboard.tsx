@@ -35,7 +35,8 @@ export function LeaderboardTab({ leaderboard }: LeaderboardTabProps) {
                     {user.rank}
                   </div>
                   <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center font-bold">
-                    {user.avatar}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={user.avatar} alt={`${user.name}'s avatar`} className="w-full h-full rounded-full" />
                   </div>
                   <span className="font-montserrat font-medium">{user.name}</span>
                 </div>
