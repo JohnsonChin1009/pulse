@@ -170,6 +170,54 @@ export default function LiveChatPage() {
     };
   }, [selectedConversation?.id, currentUserId]);
 
+  // listen for messages directed to any user
+  useEffect(() => {
+    if (!currentUserId) return;
+
+    const client = getAblyClient();
+    const channel = client.channels.get(`chat:user:${currentUserId}`);
+
+    const onAnyMessage = (msg: any) => {
+      const data = msg.data as ChatMessage;
+      const convId = data.sessionId;
+
+      // update conversations list (lastMessage + timestamp + unread count)
+      setAllConversations((prev) => {
+        if (!prev) return prev;
+        const idx = prev.findIndex((c) => c.id === convId);
+        if (idx === -1) return prev; 
+
+        const updated = [...prev];
+        const ts = data.timestamp ?? new Date().toISOString();
+
+        const updatedSession: ChatSession = {
+          ...updated[idx],
+          timestamp: ts,
+          lastMessage: data.content || "Attachment",
+          unread: {
+            ...updated[idx].unread,
+            [currentUserId]:
+              selectedConversation?.id === convId
+                ? 0 
+                : (updated[idx].unread?.[currentUserId] || 0) + 1,
+          },
+        };
+
+
+        updated.splice(idx, 1);
+        updated.unshift(updatedSession);
+
+        return updated;
+      });
+    };
+
+    channel.subscribe("message", onAnyMessage);
+
+    return () => {
+      channel.unsubscribe("message", onAnyMessage);
+    };
+  }, [currentUserId, selectedConversation?.id]);
+
 
   // real time session push (new chats being created)
   useEffect(() => {

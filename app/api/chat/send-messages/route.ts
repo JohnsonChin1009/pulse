@@ -117,6 +117,12 @@ export async function POST(req: Request) {
     const channel = ably.channels.get(`chat:${sessionId}`);
     await channel.publish("message", newMsg);
 
+    const receiverChannel = ably.channels.get(`chat:user:${targetUserId}`);
+      await receiverChannel.publish("message", {
+        ...newMsg,
+        sessionId,
+        targetUserId,
+      });
 
     return NextResponse.json(newMsg, { status: 200 });
   } catch (err) {
