@@ -223,7 +223,7 @@ export default function AdminHeader() {
                 <div className="flex items-center gap-4 px-4 py-4 bg-[#F5BE66]/5 rounded-2xl">
                   <Avatar className="w-12 h-12">
                     <AvatarImage src={userData?.profile_picture_url || "/images/default.jpg"} />
-                    <AvatarFallback className="bg-[#F5BE66] text-white font-semibold">{getInitials(userData?.username || "")}</AvatarFallback>
+                    <AvatarFallback className="bg-[#F5BE66] text-white font-semibold">{getInitials(userData?.username || "Loading User...")}</AvatarFallback>
                   </Avatar>
                   <div>
                     <p className="font-montserrat font-semibold">{userData?.username}</p>
