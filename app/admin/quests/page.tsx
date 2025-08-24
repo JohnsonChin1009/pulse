@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -6,43 +7,48 @@ import { QuestsTab } from "./quest"
 import { AchievementsTab } from "./achievement"
 import { LeaderboardTab } from "./leaderboard"
 import type { Quest, Achievement, LeaderboardUser } from "./questTypes"
+import { useEffect, useState } from "react"
 
 export default function QuestsPage() {
-  const quests: Quest[] = [
-    {
-      id: 1,
-      title: "Daily Heart Check",
-      description: "Monitor your heart rate for 7 consecutive days",
-      points: 100,
-      difficulty: "easy",
-      status: "active",
-      availableDate: "",
-      expirationDate: "",
-      completions: 1250,
-    },
-    {
-      id: 2,
-      title: "Cardio Champion",
-      description: "Complete 30 minutes of cardio exercise",
-      points: 200,
-      difficulty: "medium",
-      status: "active",
-      availableDate: "",
-      expirationDate: "",
-      completions: 890,
-    },
-    {
-      id: 3,
-      title: "Heart Health Expert",
-      description: "Read 5 cardiovascular health articles",
-      points: 150,
-      difficulty: "hard",
-      status: "active",
-      availableDate: "",
-      expirationDate: "",
-      completions: 2100,
-    },
-  ]
+  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
+  const [quests, setQuests] = useState<Quest[]>([]);
+
+  const fetchQuests = async () => {
+    try {
+      const res = await fetch("/api/admin/quest/fetch");
+      const data = await res.json();
+      setQuests(data.quest);
+    } catch (error) {
+      console.error("Failed to fetch quests:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchQuests();
+  }, []);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await fetch("/api/admin/leaderboard");
+        const data = await res.json();
+
+        const sortedLeaderboard = (data.leaderboard ?? [])
+          .map((user: any, index: number) => ({
+            rank: index + 1,
+            name: user.username || "Unknown",
+            points: user.highestScore ?? 0,
+            avatar: user.profile_picture_url || "",
+          }));
+
+        setLeaderboard(sortedLeaderboard);
+      } catch (err) {
+        console.error("Error fetching leaderboard:", err);
+      } 
+    };
+    fetchLeaderboard();
+  }, []);
+
 
   const achievements: Achievement[] = [
     {
@@ -69,15 +75,6 @@ export default function QuestsPage() {
       icon: "Award",
       count: 78,
     },
-  ]
-
-  const leaderboard: LeaderboardUser[] = [
-    { rank: 1, name: "Sarah Johnson", points: 2850, avatar: "SJ" },
-    { rank: 2, name: "Mike Chen", points: 2720, avatar: "MC" },
-    { rank: 3, name: "Emma Davis", points: 2650, avatar: "ED" },
-    { rank: 4, name: "Alex Rodriguez", points: 2580, avatar: "AR" },
-    { rank: 5, name: "Lisa Wang", points: 2490, avatar: "LW" },
-    { rank: 6, name: "Test Data", points: 2480, avatar: "LW" },
   ]
 
   return (
@@ -114,7 +111,7 @@ export default function QuestsPage() {
         </TabsList>
 
         <TabsContent value="quests">
-          <QuestsTab quests={quests} achievements={achievements} />
+          <QuestsTab quests={quests} achievements={achievements} onRefresh={fetchQuests}/>
         </TabsContent>
 
         <TabsContent value="achievements">

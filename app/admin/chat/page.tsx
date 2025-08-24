@@ -14,6 +14,7 @@ import { Search, Send, Menu, X, Plus, Paperclip, FileText, ImageIcon, Eye } from
 import { ChatSession, AvailableUser, ChatMessage, Attachment } from "./ChatTypes"
 import { useAuth } from "../authContext"
 import { getAblyClient } from "@/lib/ably";
+import { useSearchParams } from "next/navigation"
 
 async function markConversationAsRead(sessionId: string, userId: string) {
   try {
@@ -41,7 +42,17 @@ export default function LiveChatPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement | null>(null);
+  
+  const searchParams = useSearchParams()
+  const to = searchParams.get("to")
 
+  useEffect(() => {
+      if (to && typeof to === "string") {
+        setDialogOpen(true)
+        setUserSearchTerm(to)
+        setSearchTerm(to)
+      }
+  }, [to])
 
   // auth context from session login
   const { user: sessionUser } = useAuth();
@@ -218,17 +229,16 @@ export default function LiveChatPage() {
     };
   }, [currentUserId, selectedConversation?.id]);
 
-  
+
   useEffect(() => {
     if (!selectedConversation?.id) return;
 
     const container = chatContainerRef.current;
     if (!container) return;
 
-    // scroll smoothly to bottom
+    // jump instantly to bottom
     container.scrollTop = container.scrollHeight;
-  }, [selectedConversation?.id]);
-
+  }, [selectedConversation?.id ]);
 
   // real time session push (new chats being created)
   useEffect(() => {
@@ -409,7 +419,9 @@ export default function LiveChatPage() {
 
   const filteredAvailableUsers = availableUsers.filter(
     (user) =>
-      user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) &&
+
+      (user.name.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+      user.id === userSearchTerm) &&
       !allConversations?.some((conv) => conv.participantIds.includes(user.id))
   )
 

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import { useState } from "react"
@@ -8,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Plus, MoreVertical, Edit, Trash2 } from "lucide-react"
 import * as LucideIcons from "lucide-react"
-import { LucideProps } from "lucide-react"
 import type React from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -22,27 +22,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import type { Achievement } from "./questTypes"
 import { Textarea } from "@/components/ui/textarea"
+import toast from "react-hot-toast"
 
-const iconsData = [{ name: "Trophy" }, { name: "Crown" }, { name: "Star" }, { name: "Award" }, { name: "Medal" }]
-
-function DynamicLucideIcon({ name, ...props }: { name: string } & LucideProps) {
-  if (name && name in LucideIcons) {
-    const IconComponent =
-      LucideIcons[name as keyof typeof LucideIcons] as React.ComponentType<LucideProps>
-    return <IconComponent {...props} />
-  }
-  return <span className="text-white font-bold">?</span>
-}
 
 interface AchievementsTabProps {
   achievements: Achievement[]
 }
 
-export function AchievementForm({
-  onSave,
-  initialData,
-  isEditing = false,
-}: {
+export function AchievementForm({onSave, initialData, isEditing = false,}: {
   onSave: (a: Achievement) => void
   initialData?: Achievement
   isEditing?: boolean
@@ -54,16 +41,64 @@ export function AchievementForm({
     icon: initialData?.icon || "",
   })
 
-  const handleSubmit = () => {
-    const achievement: Achievement = {
-      title: form.title,
-      score: Number.parseInt(form.score),
-      icon: form.icon,
-      description: initialData?.description || "",
-      count: initialData?.count || 0,
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string>(initialData?.icon || "")
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setImageFile(file)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        setImagePreview(result)
+        setForm({ ...form, icon: result })
+      }
+      reader.readAsDataURL(file)
     }
-    onSave(achievement)
   }
+
+  const isFormValid = () => {
+    return (
+      form.title.trim() !== "" &&
+      form.description.trim() !== "" &&
+      form.score.trim() !== "" &&
+      (imagePreview !== "" || form.icon !== "")
+    )
+  }
+
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append("title", form.title);
+    formData.append("description", form.description);
+    formData.append("score", form.score);
+    if (imageFile) formData.append("image", imageFile);
+
+    try {
+      const res = await fetch("/api/admin/achievement/create", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        onSave(data.achievement);
+        setForm({
+          title: "",
+          description: "",
+          score: "",
+          icon: "",
+        });
+        setImageFile(null);
+        setImagePreview("");
+        toast.success("Achievement created successfully");
+      } else {
+        console.error("Error saving achievement:", data.error);
+      }
+    } catch (err) {
+      console.error("Failed to submit achievement:", err);
+    }
+  };
 
   return (
     <div className="space-y-3 mt-5">
@@ -91,31 +126,44 @@ export function AchievementForm({
       <Label htmlFor="achievementDescription" className="mb-3">
         Achievement Description
       </Label>
-        <Textarea
-          id="description"
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-          placeholder="Describe the quest"
-          rows={3}
-          className="rounded-sm border-gray-300 border-2"
-        />
+      <Textarea
+        id="description"
+        value={form.description}
+        onChange={(e) => setForm({ ...form, description: e.target.value })}
+        placeholder="Describe the achievement"
+        rows={3}
+        className="rounded-sm border-gray-300 border-2"
+      />
+
       <Label htmlFor="achievementIcon" className="mb-3">
-        Achievement Icon
+        Achievement Image
       </Label>
-      <select
+      <Input
         id="achievementIcon"
-        value={form.icon}
-        onChange={(e) => setForm({ ...form, icon: e.target.value })}
-        className="w-full rounded-md border border-gray-300 pt-3 pb-3 px-3 py-2 text-sm shadow-sm focus:border-[#F5BE66] focus:ring focus:ring-[#F5BE66]/50"
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        className="rounded-sm border-gray-300"
+      />
+
+      {imagePreview && (
+        <div className="mt-3">
+          <Label className="mb-2 block">Image Preview</Label>
+          <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-300">
+            <img
+              src={imagePreview || "/placeholder.svg"}
+              alt="Achievement preview"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+      )}
+
+      <Button
+        onClick={handleSubmit}
+        disabled={!isFormValid()}
+        className="bg-[#F5BE66] hover:bg-[#E5AE56] mt-5 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <option value="">-- Select Icon --</option>
-        {iconsData.map((icon) => (
-          <option key={icon.name} value={icon.name}>
-            {icon.name}
-          </option>
-        ))}
-      </select>
-      <Button onClick={handleSubmit} className="bg-[#F5BE66] hover:bg-[#E5AE56] mt-5">
         {isEditing ? "Update Achievement" : "Save Achievement"}
       </Button>
     </div>
@@ -255,7 +303,7 @@ export function AchievementsTab({ achievements }: AchievementsTabProps) {
 
               <div className="w-16 h-16 bg-[#F5BE66] rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="w-8 h-8 text-white font-bold">
-                  <DynamicLucideIcon name={achievement.icon as string} className="w-8 h-8 text-white" />
+                  img here
                 </span>
               </div>
               <h3 className="font-dela text-lg text-gray-900 mb-2">{achievement.name || achievement.title}</h3>

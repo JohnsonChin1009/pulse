@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -15,8 +16,6 @@ import {
   Eye,
   Ban,
   Mail,
-  Heart,
-  Activity,
   UserCheck,
   Stethoscope,
   FileText,
@@ -28,42 +27,32 @@ import {
   X,
   UserCheckIcon,
 } from "lucide-react"
+import { useAuth } from "../authContext"
+import Link from "next/link"
+import toast from "react-hot-toast"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
-const users = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    status: "active",
-    hearts: 10,
-    questsCompleted: 5,
-    joinDate: "2023-01-01",
-    lastActive: "2023-02-01",
-    avatar: "/john.jpg",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    status: "inactive",
-    hearts: 5,
-    questsCompleted: 5,
-    joinDate: "2023-01-01",
-    lastActive: "2023-02-01",
-    avatar: "/john.jpg",
-  },
-  {
-    id: 3,
-    name: "Ben Smith",
-    email: "ben@example.com",
-    status: "suspended",
-    hearts: 5,
-    questsCompleted: 5,
-    joinDate: "2023-01-01",
-    lastActive: "2023-02-01",
-    avatar: "/john.jpg",
-  },
-]
+export type UserStatus = "active" | "inactive" | "suspended"
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  status: UserStatus
+  joinDate: string
+  lastActive: string
+  avatar: string | null
+}
+const formatDateTime = (dateStr: string | null) => {
+  if (!dateStr) return "-"
+  const date = new Date(dateStr)
+  const day = String(date.getDate()).padStart(2, "0")
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const year = date.getFullYear()
+  const hours = String(date.getHours()).padStart(2, "0")
+  const minutes = String(date.getMinutes()).padStart(2, "0")
+  return `${day}/${month}/${year} ${hours}:${minutes}`
+}
 
 const practitioners = [
   {
@@ -98,28 +87,128 @@ const practitioners = [
   },
 ]
 
+interface Stats {
+  total: number;
+  online: number;
+  offline: number;
+  suspended: number;
+}
+
+
+
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [verifyStatusFilter, setVerifyStatusFilter] = useState("all")
   const [activeTab, setActiveTab] = useState("users")
+  const [countData, setCountData ] = useState<Stats | null>(null)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [open, setOpen] = useState(false)
 
-  const [userList, setUserList] = useState(users)
+  const [userList, setUserList] = useState<User[] | null>(null)
 
-  type UserStatus = "active" | "inactive" | "suspended"
+  const {user: sessionUser} = useAuth();
 
-  function handleStatusChange(userId: number, newStatus: UserStatus) {
-    setUserList(prev =>
-      prev.map(u => (u.id === userId ? { ...u, status: newStatus } : u))
-    )
-    // optional: await fetch(`/api/users/${userId}/status`, { method: "PUT", body: JSON.stringify({ status: newStatus }) })
+  // fetch all user from the db
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("/api/admin/users/user-list")
+        if (!response.ok) throw new Error("Failed to fetch users")
+
+        const data = await response.json()
+
+        const normalized: User[] = data.map((u: any) => ({
+          id: u.id,
+          name: u.username ?? "",
+          email: u.email ?? "",
+          avatar: u.profile_picture_url ?? null,
+          joinDate: u.created_at ?? "-",
+          lastActive: u.updated_at ?? "-",
+          status: u.suspension_status === true
+            ? "suspended"
+            : u.online_status === true
+            ? "active"
+            : "inactive",
+        }))
+
+        setUserList(normalized)
+      } catch (error) {
+        console.error("Error fetching user list:", error)
+      }
+    }
+
+    fetchUsers()
+  }, [])
+
+  // fetch card status on user tab
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch("/api/admin/users/stats");
+        if (!response.ok) {
+          throw new Error("Failed to fetch stats");
+        }
+        const data = await response.json();
+        setCountData(data);
+      } catch (error) {
+        console.error("Error fetching user stats:", error);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+
+  async function handleStatusChange(userId: string, currentStatus: UserStatus) {
+    try {
+      const suspend = currentStatus !== "suspended";
+
+      const res = await fetch("/api/admin/users/suspend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, suspend }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update user");
+
+      const updatedUser: { suspension_status: boolean; online_status: boolean } = await res.json();
+
+      toast.success("User suspension status updated.");
+
+      setUserList(prev =>
+        prev?.map(u =>
+          u.id === userId
+            ? {
+                ...u,
+                suspension_status: updatedUser.suspension_status,
+                status: updatedUser.suspension_status
+                  ? "suspended"
+                  : updatedUser.online_status
+                  ? "active"
+                  : "inactive",
+              }
+            : u
+        ) || []
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error?.("Failed to update user suspension status.");
+    }
   }
 
-  const filteredUsers = userList.filter((user) => {
+
+
+
+  const filteredUsers = userList?.filter((user) => {
+    if (!user) return false
+    const name = user.name ?? ""
+    const email = user.email ?? ""
+
     if (statusFilter !== "all" && user.status !== statusFilter) return false
     if (
-      !user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      !name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !email.toLowerCase().includes(searchTerm.toLowerCase())
     )
       return false
     return true
@@ -153,7 +242,10 @@ export default function UsersPage() {
         )
       case "suspended":
         return (
-          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
+          <Badge
+            variant="destructive"
+            className="bg-destructive/10 text-destructive border-destructive/20"
+          >
             Suspended
           </Badge>
         )
@@ -166,7 +258,10 @@ export default function UsersPage() {
         )
       case "rejected":
         return (
-          <Badge variant="destructive" className="bg-destructive/10 text-destructive border-destructive/20">
+          <Badge
+            variant="destructive"
+            className="bg-destructive/10 text-destructive border-destructive/20"
+          >
             <AlertTriangle className="w-3 h-3 mr-1" />
             Rejected
           </Badge>
@@ -176,79 +271,77 @@ export default function UsersPage() {
     }
   }
 
-  const UserCard = ({ user }: { user: (typeof users)[0] }) => (
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const UserCard = ({user, handleStatusChange,}: {user: User, handleStatusChange: (id: string, status: UserStatus) => void}) => (
     <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-border/50 hover:border-primary/20">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
             <Avatar className="w-12 h-12 ring-2 ring-primary/10">
-              <AvatarImage src={user.avatar || "/test"} />
+              <AvatarImage src={user.avatar || "/images/default.jpg"} alt={user.name || "User"} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                {user.name
+                {(user.name ?? "NA")
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-serif font-semibold text-foreground">{user.name}</h3>
-              <p className="text-sm text-muted-foreground">{user.email}</p>
+              <h3 className="font-serif font-semibold text-foreground">{user.name ?? "Unknown User"}</h3>
+              <p className="text-sm text-muted-foreground">{user.email ?? "No email"}</p>
             </div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="opacity-0 group-hover:opacity-100 transition-opacity"
+              >
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>
-                <Eye className="w-4 h-4 mr-2" />
-                View Profile
+                <Eye className="w-4 h-4 mr-2" /> View Profile
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Mail className="w-4 h-4 mr-2" />
-                Send Message
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                  className={`flex items-center ${
-                    user.status === "suspended" ? "text-green-600" : "text-red-600"
-                  }`}
-                onClick={() =>
-                  handleStatusChange(
-                    user.id,
-                    user.status === "suspended" ? "active" : "suspended"
-                  )
-                }
-              >
-                <Ban
-                  className={`w-4 h-4 mr-2 ${
-                    user.status === "suspended" ? "text-green-600" : "text-red-600"
-                  }`}
-                />
-                {user.status === "suspended" ? "Unsuspend User" : "Suspend User"}
-              </DropdownMenuItem>
+                {user.id !== sessionUser?.id && (
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={`/admin/chat?to=${user.name}`}
+                      className="flex items-center"
+                    >
+                      <Mail className="w-4 h-4 mr-2" /> Send Message
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                {user.id !== sessionUser?.id && (
+                  <DropdownMenuItem
+                    className={`flex items-center ${
+                      user.status === "suspended" ? "text-green-600" : "text-red-600"
+                    }`}
+                    onClick={() => {
+                      setSelectedUser(user) 
+                      setOpen(true)   
+                    }}
+                  >
+                  <Ban
+                    className={`w-4 h-4 mr-2 ${
+                      user.status === "suspended" ? "text-green-600" : "text-red-600"
+                    }`}
+                  />
+                  {user.status === "suspended" ? "Unsuspend User" : "Suspend User"}
+                </DropdownMenuItem>
+                )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
-        <div className="flex items-center justify-between mb-4">
-          {getStatusBadge(user.status)}
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Heart className="w-4 h-4 text-red-500" />
-              <span className="font-medium">{user.hearts}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Activity className="w-4 h-4 text-blue-500" />
-              <span className="font-medium">{user.questsCompleted}</span>
-            </div>
-          </div>
-        </div>
+        <div className="flex items-center justify-between mb-4">{getStatusBadge(user.status)}</div>
 
         <div className="flex justify-between text-xs text-muted-foreground">
-          <span>Joined {user.joinDate}</span>
-          <span>Active {user.lastActive}</span>
+          <span>Joined: {formatDateTime(user.joinDate)}</span>
+          <span>Last Active: {formatDateTime(user.lastActive)}</span>
         </div>
       </CardContent>
     </Card>
@@ -353,7 +446,7 @@ export default function UsersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Total Users</p>
-                      <p className="text-2xl font-bold text-foreground">123</p>
+                      <p className="text-2xl font-bold text-foreground">{countData?.total}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -367,7 +460,7 @@ export default function UsersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Active Users</p>
-                      <p className="text-2xl font-bold text-foreground">98</p>
+                      <p className="text-2xl font-bold text-foreground">{countData?.online}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -381,7 +474,7 @@ export default function UsersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Inactive</p>
-                      <p className="text-2xl font-bold text-foreground">23</p>
+                      <p className="text-2xl font-bold text-foreground">{countData?.offline}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -395,7 +488,7 @@ export default function UsersPage() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground">Suspended</p>
-                      <p className="text-2xl font-bold text-foreground">2</p>
+                      <p className="text-2xl font-bold text-foreground">{countData?.suspended}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -435,8 +528,8 @@ export default function UsersPage() {
               </CardContent>
             </Card>
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredUsers.map((user) => (
-                  <UserCard key={user.id} user={user} />
+                {filteredUsers?.map((user) => (
+                  <UserCard key={user.id} user={user} handleStatusChange={handleStatusChange} />
                 ))}
               </div>
           </TabsContent>
@@ -542,6 +635,42 @@ export default function UsersPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {selectedUser?.status === "suspended"
+                ? "Unsuspend this user?"
+                : "Suspend this user?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedUser?.status === "suspended"
+                ? "The user will regain access to their account."
+                : "This will immediately prevent the user from logging in."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex justify-end gap-2">
+            <AlertDialogCancel asChild>
+              <Button variant="outline" className="rounded-xl">Cancel</Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                className="w-full sm:w-25 rounded-xl"
+                variant={selectedUser?.status === "suspended" ? "default" : "destructive"}
+                onClick={() => {
+                  if (selectedUser) {
+                    handleStatusChange(selectedUser.id, selectedUser.status)
+                  }
+                  setOpen(false)
+                }}
+              >
+                {selectedUser?.status === "suspended" ? "Unsuspend" : "Suspend"}
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

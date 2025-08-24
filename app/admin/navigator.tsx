@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -15,7 +15,6 @@ import {
   Menu,
   X,
   LogOut,
-  Settings,
   User,
   BarChart3,
   Users,
@@ -40,16 +39,56 @@ const navItems = [
 const mobileShelfItems = [...navItems, { href: "/forum", label: "Forum", icon: MessageCircle }]
 const bottomNavItems = navItems
 
+interface UserBasic {
+  username: string;
+  profile_picture_url: string | null;
+}
+
+function getInitials(name: string): string {
+  if (!name) return "";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2); // limit to 2 letters
+}
+
 export default function AdminHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  const [userData, setUserData] = useState<UserBasic | null>(null);
+  const { user: sessionUser } = useAuth();
 
-  const { user } = useAuth();
+  const currentUserId = sessionUser?.id || "";
+  
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!currentUserId) return;
 
+      try {
+        const res = await fetch(`/api/admin/users/${currentUserId}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch user");
+        }
+
+        const data: UserBasic = await res.json();
+        setUserData(data);
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      }
+    };
+
+    fetchUser();
+  }, [currentUserId]);
 
   return (
     <>
-      {/* Desktop Header */}
+      {/* desktop header */}
       <header className="hidden md:flex items-center justify-between px-8 py-4 bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-[#F5BE66] rounded-3xl flex items-center justify-center shadow-lg">
@@ -81,18 +120,17 @@ export default function AdminHeader() {
           })}
         </nav>
 
-        {/* Profile Dropdown for Desktop */}
+        {/* desktop profile dropdown */}
         <div className="flex items-center gap-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              {/* Profile Button Section */}
               <Button variant="ghost" className="flex items-center gap-3 p-3 rounded-2xl w-50 h-12">
                 <Avatar className="w-9 h-9">
-                  <AvatarImage src="/placeholder.svg?height=36&width=36" />
-                  <AvatarFallback className="bg-[#F5BE66] text-white font-semibold">AD</AvatarFallback>
+                  <AvatarImage src={userData?.profile_picture_url || "/images/default.jpg"} />
+                  <AvatarFallback className="bg-[#F5BE66] text-white font-semibold">{getInitials(userData?.username || "")}</AvatarFallback>
                 </Avatar>
                 <div className="text-left">
-                  <p className="font-montserrat font-semibold text-sm">Admin</p>
+                  <p className="font-montserrat font-semibold text-sm truncate w-27">{userData?.username}</p>
                 </div>
                 <ChevronDown className="w-4 h-4 text-gray-600" />
               </Button>
@@ -102,10 +140,6 @@ export default function AdminHeader() {
               <DropdownMenuItem className="rounded-xl">
                 <User className="w-4 h-4 mr-2" />
                 Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem className="rounded-xl">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-red-600 rounded-xl">
@@ -126,11 +160,11 @@ export default function AdminHeader() {
         <div className="flex items-center justify-between px-6 py-4 pb-6">
           <div className="flex items-center gap-3">
             <Avatar className="w-12 h-12 border-2 border-white/30">
-              <AvatarImage src="/placeholder.svg?height=48&width=48" />
-              <AvatarFallback className="bg-white/20 text-white font-dela text-lg">AD</AvatarFallback>
+              <AvatarImage src={userData?.profile_picture_url || "/images/default.jpg"} />
+              <AvatarFallback className="bg-white/20 text-white font-dela text-lg">{getInitials(userData?.username || "")}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-white/80 text-sm font-montserrat">Admin</p>
+              <p className="text-white/80 text-sm font-montserrat">{userData?.username}</p>
             </div>
           </div>
 
@@ -188,11 +222,11 @@ export default function AdminHeader() {
 
                 <div className="flex items-center gap-4 px-4 py-4 bg-[#F5BE66]/5 rounded-2xl">
                   <Avatar className="w-12 h-12">
-                    <AvatarImage src="/placeholder.svg?height=48&width=48" />
-                    <AvatarFallback className="bg-[#F5BE66] text-white font-semibold">AD</AvatarFallback>
+                    <AvatarImage src={userData?.profile_picture_url || "/images/default.jpg"} />
+                    <AvatarFallback className="bg-[#F5BE66] text-white font-semibold">{getInitials(userData?.username || "")}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-montserrat font-semibold">Admin</p>
+                    <p className="font-montserrat font-semibold">{userData?.username}</p>
                   </div>
                 </div>
 

@@ -1,6 +1,6 @@
 import { db } from "@/lib/db/connection";
 import { forums, forumPosts, forumComments, users } from "@/lib/db/schema";
-import { eq, desc, asc, sql, and } from "drizzle-orm";
+import { eq, desc, sql  } from "drizzle-orm";
 
 type ForumInsert = typeof forums.$inferInsert;
 type ForumRow = typeof forums.$inferSelect;
