@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -27,6 +27,7 @@ import {
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "./authContext"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: BarChart3 },
@@ -51,14 +52,17 @@ function getInitials(name: string): string {
     .map((n) => n[0])
     .join("")
     .toUpperCase()
-    .slice(0, 2); // limit to 2 letters
+    .slice(0, 2); 
 }
 
 export default function AdminHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
   const [userData, setUserData] = useState<UserBasic | null>(null);
   const { user: sessionUser } = useAuth();
+
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
   const currentUserId = sessionUser?.id || "";
   
@@ -85,6 +89,12 @@ export default function AdminHeader() {
 
     fetchUser();
   }, [currentUserId]);
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/sign-in");
+  };
+
 
   return (
     <>
@@ -142,7 +152,9 @@ export default function AdminHeader() {
                 Profile
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600 rounded-xl">
+              <DropdownMenuItem className="text-red-600 rounded-xl"
+                onClick={() => setLogoutDialogOpen(true)}
+              >
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </DropdownMenuItem>
@@ -244,7 +256,7 @@ export default function AdminHeader() {
                   Profile
                 </Link>
 
-                <button className="w-full flex items-center gap-4 px-4 py-4 text-red-600 hover:bg-red-50 rounded-2xl font-montserrat font-medium transition-all duration-200">
+                <button onClick={() => setLogoutDialogOpen(true)} className="w-full flex items-center gap-4 px-4 py-4 text-red-600 hover:bg-red-50 rounded-2xl font-montserrat font-medium transition-all duration-200">
                   <div className="w-10 h-10 bg-red-50 rounded-2xl flex items-center justify-center">
                     <LogOut className="w-5 h-5" />
                   </div>
@@ -291,6 +303,37 @@ export default function AdminHeader() {
           </motion.nav>
         )}
       </AnimatePresence>
+
+      <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Logout Confirmation
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to logout?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex justify-end gap-2">
+            <AlertDialogCancel asChild>
+              <Button variant="outline" className="rounded-xl">
+                Cancel
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                className="w-full sm:w-25 rounded-xl"
+                variant="default"
+                onClick={() => {
+                  handleLogout();
+                }}
+              >
+                Logout
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
