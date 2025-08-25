@@ -17,22 +17,24 @@ const s3 = new S3Client({
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const title = formData.get("title") as string;
-    const description = formData.get("description") as string;
-    const score = Number(formData.get("score"));
-    const imageFile = formData.get("image") as File;
+    const title = formData.get("title")?.toString().trim();
+    const description = formData.get("description")?.toString().trim();
+    const questIdValue = formData.get("achievementQuest")?.toString();
+    const questId = questIdValue ? Number(questIdValue) : NaN;
+    const imageFile = formData.get("image") as File | null;
 
-    if (!title || !description || !score) {
+    if (!title || !description || isNaN(questId)) {
+      console.log("title:", title, "description:", description, "questId:", questId, "imageFile:", imageFile);
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // insert achievement first
+    // Insert achievement
     const [newAchievement] = await db
       .insert(achievements)
       .values({
         achievement_title: title,
         achievement_description: description,
-        achievement_score: score,
+        quest_id: questId,
         achievement_icon: "", 
       })
       .returning();
@@ -41,25 +43,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to create achievement" }, { status: 500 });
     }
 
-    // get achievement id and insert image into s3buckets with relevant format
     let imageUrl = "";
     if (imageFile) {
-      const arrayBuffer = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
       const s3Key = `achievement/${newAchievement.id}/${imageFile.name}`;
+
       await s3.send(
         new PutObjectCommand({
           Bucket: process.env.AWS_S3_BUCKET_NAME!,
           Key: s3Key,
           Body: buffer,
           ContentType: imageFile.type,
-          ACL: "public-read" 
+          ACL: "public-read",
         })
       );
-      imageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
 
-      // update the achievement with S3 URL
+      imageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/${s3Key}`;
+
+      // Update achievement with image URL
       const [updatedAchievement] = await db
         .update(achievements)
         .set({ achievement_icon: imageUrl })
@@ -69,6 +70,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ achievement: updatedAchievement });
     }
 
+    // No image, just return inserted achievement
     return NextResponse.json({ achievement: newAchievement });
   } catch (err) {
     console.error("Failed to create achievement:", err);

@@ -25,11 +25,12 @@ export interface EditQuest {
 }
 
 export interface Achievement {
+  id: any
   title?: string
   name?: string
   description: string
-  score?: number
-  icon: string 
+  achievementQuest: number
+  image: string
   count?: number
 }
 

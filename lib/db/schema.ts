@@ -18,7 +18,6 @@ export const users = pgTable("users", {
   profile_picture_url: text("profile_picture_url"),
   role: varchar("role", { length: 20 }).notNull().default("user"),
   gender: varchar("gender", { length: 10 }),
-  is_verified: boolean("is_verified").default(false),
   online_status: boolean("online_status").default(false),
   suspension_status: boolean("suspension_status").default(false),
   created_at: timestamp("created_at", { withTimezone: true }).defaultNow(),
@@ -142,11 +141,7 @@ export const achievements = pgTable("achievements", {
   id: serial("id").primaryKey(),
   achievement_title: varchar("achievement_title", { length: 256 }).notNull(),
   achievement_description: text("achievement_description"),
-  achievement_score: integer("achievement_score").default(0),
   achievement_icon: text("achievement_icon"),
-  leaderboard_id: serial("leaderboard_id")
-    .notNull()
-    .references(() => leaderboards.id, { onDelete: "cascade" }),
   quest_id: serial("quest_id")
     .notNull()
     .references(() => quests.id, { onDelete: "cascade" }),

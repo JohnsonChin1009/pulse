@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -24,9 +24,15 @@ import type { Achievement } from "./questTypes"
 import { Textarea } from "@/components/ui/textarea"
 import toast from "react-hot-toast"
 
+interface Quest{
+  id: number,
+  quest_title: string
+}
 
 interface AchievementsTabProps {
-  achievements: Achievement[]
+  achievements: Achievement[];
+  onRefresh: () => void;
+  setAchievements: React.Dispatch<React.SetStateAction<Achievement[]>>;
 }
 
 export function AchievementForm({onSave, initialData, isEditing = false,}: {
@@ -34,15 +40,48 @@ export function AchievementForm({onSave, initialData, isEditing = false,}: {
   initialData?: Achievement
   isEditing?: boolean
 }) {
+
+  const [questsSelection, setQuestsSelection] = useState<Quest[]>([]);
+
+
+  useEffect(() => {
+    const fetchQuests = async () => {
+      try {
+        const res = await fetch("/api/admin/achievement/fetch-quest"); 
+        if (!res.ok) throw new Error("Failed to fetch quests");
+
+        const data = await res.json();
+        console.log("Fetched quests:", data.quests); // Debug log
+        setQuestsSelection(data.quests || []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchQuests();
+  }, []);
+
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        title: initialData.title || initialData.name || "",
+        description: initialData.description || "",
+        achievementQuest: initialData.achievementQuest?.toString() || "",
+        image: initialData.image || "",
+      });
+      setImagePreview(initialData.image || "");
+    }
+  }, [initialData]);
+
   const [form, setForm] = useState({
     title: initialData?.title || initialData?.name || "",
     description: initialData?.description || "",
-    score: initialData?.score?.toString() || "",
-    icon: initialData?.icon || "",
+    achievementQuest: initialData?.achievementQuest?.toString() || "",
+    image: initialData?.image || "",
   })
 
   const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string>(initialData?.icon || "")
+  const [imagePreview, setImagePreview] = useState<string>(initialData?.image || "")
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -52,7 +91,7 @@ export function AchievementForm({onSave, initialData, isEditing = false,}: {
       reader.onload = (e) => {
         const result = e.target?.result as string
         setImagePreview(result)
-        setForm({ ...form, icon: result })
+        setForm({ ...form, image: result })
       }
       reader.readAsDataURL(file)
     }
@@ -62,20 +101,34 @@ export function AchievementForm({onSave, initialData, isEditing = false,}: {
     return (
       form.title.trim() !== "" &&
       form.description.trim() !== "" &&
-      form.score.trim() !== "" &&
-      (imagePreview !== "" || form.icon !== "")
+      form.achievementQuest !== "" &&
+      (imagePreview !== "" || form.image !== "")
     )
   }
 
   const handleSubmit = async () => {
+    if (!form.achievementQuest || form.achievementQuest === "") {
+      toast.error("Please select a quest");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("title", form.title);
     formData.append("description", form.description);
-    formData.append("score", form.score);
+
+    const questId = parseInt(form.achievementQuest);
+    if (!isNaN(questId)) formData.append("achievementQuest", questId.toString());
+
     if (imageFile) formData.append("image", imageFile);
 
+    if (isEditing && initialData?.id) formData.append("id", initialData.id.toString());
+
+    const url = isEditing
+      ? `/api/admin/achievement/update/${initialData?.id}`
+      : `/api/admin/achievement/create`;
+
     try {
-      const res = await fetch("/api/admin/achievement/create", {
+      const res = await fetch(url, {
         method: "POST",
         body: formData,
       });
@@ -83,22 +136,24 @@ export function AchievementForm({onSave, initialData, isEditing = false,}: {
       const data = await res.json();
       if (res.ok) {
         onSave(data.achievement);
-        setForm({
-          title: "",
-          description: "",
-          score: "",
-          icon: "",
-        });
-        setImageFile(null);
-        setImagePreview("");
-        toast.success("Achievement created successfully");
+
+        if (!isEditing) {
+          setForm({ title: "", description: "", achievementQuest: "", image: "" });
+          setImageFile(null);
+          setImagePreview("");
+        }
+
+        toast.success(isEditing ? "Achievement updated successfully" : "Achievement created successfully");
       } else {
-        console.error("Error saving achievement:", data.error);
+        toast.error(data.error || "Failed to save achievement");
       }
     } catch (err) {
-      console.error("Failed to submit achievement:", err);
+      console.error(err);
+      toast.error("Failed to save achievement");
     }
   };
+
+
 
   return (
     <div className="space-y-3 mt-5">
@@ -109,17 +164,6 @@ export function AchievementForm({onSave, initialData, isEditing = false,}: {
         placeholder="Title"
         value={form.title}
         onChange={(e) => setForm({ ...form, title: e.target.value })}
-        className="rounded-sm border-gray-300"
-      />
-
-      <Label htmlFor="achievementScore" className="mb-3">
-        Achievement Score
-      </Label>
-      <Input
-        type="number"
-        placeholder="Score"
-        value={form.score}
-        onChange={(e) => setForm({ ...form, score: e.target.value })}
         className="rounded-sm border-gray-300"
       />
 
@@ -135,11 +179,33 @@ export function AchievementForm({onSave, initialData, isEditing = false,}: {
         className="rounded-sm border-gray-300 border-2"
       />
 
-      <Label htmlFor="achievementIcon" className="mb-3">
+      <Label htmlFor="achievementQuest" className="mb-3 mt-4">
+        Achievement Quest
+      </Label>
+      <select
+        id="achievementQuest"
+        value={form.achievementQuest}
+        onChange={(e) =>
+          setForm({ ...form, achievementQuest: e.target.value })
+        }
+        className="w-full rounded-sm border-gray-300 border-2 p-2"
+      >
+        <option value="">Select Quest</option>
+        {questsSelection.map((quest, index) => (
+          <option 
+            key={quest.id || `quest-${index}`} 
+            value={quest.id}
+          >
+            {quest.quest_title}
+          </option>
+        ))}
+      </select>
+
+      <Label htmlFor="achievementImage" className="mb-3">
         Achievement Image
       </Label>
       <Input
-        id="achievementIcon"
+        id="achievementImage"
         type="file"
         accept="image/*"
         onChange={handleImageChange}
@@ -151,7 +217,7 @@ export function AchievementForm({onSave, initialData, isEditing = false,}: {
           <Label className="mb-2 block">Image Preview</Label>
           <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-300">
             <img
-              src={imagePreview || "/placeholder.svg"}
+              src={imagePreview || ""}
               alt="Achievement preview"
               className="w-full h-full object-cover"
             />
@@ -170,32 +236,62 @@ export function AchievementForm({onSave, initialData, isEditing = false,}: {
   )
 }
 
-export function AchievementsTab({ achievements }: AchievementsTabProps) {
+export function AchievementsTab({ achievements, onRefresh, setAchievements }: AchievementsTabProps) {
   const [showAchievementDialog, setShowAchievementDialog] = useState(false)
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteAlert, setShowDeleteAlert] = useState(false)
   const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null)
+  
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
 
   const [searchQuery, setSearchQuery] = useState("")
+  
 
   const handleAddAchievement = (achievement: Achievement) => {
     console.log("Adding achievement:", achievement)
     setShowAchievementDialog(false)
+    onRefresh(); 
   }
 
   const handleEditAchievement = (achievement: Achievement) => {
-    console.log("Updating achievement:", achievement)
-    setShowEditDialog(false)
-    setSelectedAchievement(null)
-  }
+    setShowEditDialog(false);
+    setSelectedAchievement(null);
+    setAchievements((prev) =>
+      prev.map((a) => (a.id === achievement.id ? achievement : a))
+    );
+    onRefresh();
+  };
 
-  const handleDeleteAchievement = () => {
-    console.log("Deleting achievement at index:", selectedIndex)
-    setShowDeleteAlert(false)
-    setSelectedAchievement(null)
-    setSelectedIndex(-1)
-  }
+  const handleDeleteAchievement = async () => {
+    if (!selectedAchievement) return;
+
+    try {
+      const res = await fetch(`/api/admin/achievement/delete/${selectedAchievement.id}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Achievement deleted successfully");
+
+        setAchievements((prev) =>
+          prev.filter((a) => a.id !== selectedAchievement.id)
+        );
+
+        setShowDeleteAlert(false);
+        setSelectedAchievement(null);
+        setSelectedIndex(-1);
+      } else {
+        toast.error(data.error || "Failed to delete achievement");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete achievement");
+    }
+  };
+
+
 
   const openEditDialog = (achievement: Achievement, index: number) => {
     setSelectedAchievement(achievement)
@@ -301,10 +397,12 @@ export function AchievementsTab({ achievements }: AchievementsTabProps) {
                 </DropdownMenu>
               </div>
 
-              <div className="w-16 h-16 bg-[#F5BE66] rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="w-8 h-8 text-white font-bold">
-                  img here
-                </span>
+              <div className="w-16 h-16 bg-[#F5BE66] rounded-full overflow-hidden flex items-center justify-center mx-auto mb-4">
+                <img
+                  src={achievement.image}
+                  alt={achievement.name || "Achievement"}
+                  className="w-full h-full object-cover"
+                />
               </div>
               <h3 className="font-dela text-lg text-gray-900 mb-2">{achievement.name || achievement.title}</h3>
               <p className="text-gray-600 font-montserrat text-sm mb-3">{achievement.description}</p>

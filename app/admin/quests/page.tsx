@@ -6,12 +6,13 @@ import { Target, Trophy, Medal } from "lucide-react"
 import { QuestsTab } from "./quest"
 import { AchievementsTab } from "./achievement"
 import { LeaderboardTab } from "./leaderboard"
-import type { Quest, Achievement, LeaderboardUser } from "./questTypes"
+import type { Quest, LeaderboardUser, Achievement } from "./questTypes"
 import { useEffect, useState } from "react"
 
 export default function QuestsPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
   const [quests, setQuests] = useState<Quest[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
 
   const fetchQuests = async () => {
     try {
@@ -25,6 +26,7 @@ export default function QuestsPage() {
 
   useEffect(() => {
     fetchQuests();
+    fetchAchievements();
   }, []);
 
   useEffect(() => {
@@ -50,32 +52,31 @@ export default function QuestsPage() {
   }, []);
 
 
-  const achievements: Achievement[] = [
-    {
-      name: "Heart Hero",
-      description: "Completed 50 quests",
-      icon: "Trophy",
-      count: 245,
-    },
-    {
-      name: "Streak Master",
-      description: "7-day quest streak",
-      icon: "Crown",
-      count: 189,
-    },
-    {
-      name: "Knowledge Seeker",
-      description: "Read 100 articles",
-      icon: "Star",
-      count: 156,
-    },
-    {
-      name: "Community Helper",
-      description: "Helped 10 users",
-      icon: "Award",
-      count: 78,
-    },
-  ]
+    const fetchAchievements = async () => {
+      try {
+        const res = await fetch("/api/admin/achievement/fetch");
+        if (!res.ok) throw new Error("Failed to fetch achievements");
+
+        const data = await res.json();
+
+        // Transform API data to match mock shape
+        const mappedAchievements: Achievement[] = (data.achievements || []).map((a: any) => ({
+          id: a.id,
+          name: a.achievement_title,
+          description: a.achievement_description,
+          achievementQuest: a.quest_id,
+          image: a.achievement_icon || "", // fallback
+          count: a.completions || 0, // assuming your API returns completions
+        }));
+
+        setAchievements(mappedAchievements);
+
+      } catch (err) {
+        console.error(err);
+      } 
+    };
+
+
 
   return (
     <div className="p-6 max-w-7xl mx-auto pb-25 md:pb-0 mb-0 md:mb-12">
@@ -115,7 +116,7 @@ export default function QuestsPage() {
         </TabsContent>
 
         <TabsContent value="achievements">
-          <AchievementsTab achievements={achievements} />
+          <AchievementsTab   achievements={achievements} onRefresh={fetchAchievements} setAchievements={setAchievements} />
         </TabsContent>
 
         <TabsContent value="leaderboard">

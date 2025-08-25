@@ -76,4 +76,18 @@ export const questRepository = {
 
     return results;
   },
-};
+
+  async listQuestsAsSelection(): Promise<{
+    id: number;
+    quest_title: string;
+  }[]> {
+    const results = await db
+      .select({
+        id: quests.id,
+        quest_title: quests.title,
+      })
+      .from(quests);
+
+    return results;
+  },
+}

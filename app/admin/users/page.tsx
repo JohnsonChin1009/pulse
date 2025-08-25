@@ -83,6 +83,7 @@ export interface Practitioner {
   avatar: string | null;
   submissionDate: string;
   joinDate: string;
+  user_id: string;
 }
 
 interface Stats {
@@ -140,6 +141,7 @@ export default function UsersPage() {
 
   const handlePractitionerStatus = async (
     practitionerId: number,
+    userId: string,
     action: "approve" | "reject"
   ) => {
     try {
@@ -148,6 +150,7 @@ export default function UsersPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           practitionerId,
+          userId,
           status: action === "approve" ? "verified" : "rejected",
         }),
       });
@@ -186,6 +189,7 @@ export default function UsersPage() {
           avatar: row.user.profile_picture_url || null,
           submissionDate: formatDateTime(row.practitioner.submitted_at),
           joinDate: formatDateTime(row.user.created_at),
+          user_id: row.user.id
         }));
 
         setPractitioners(transformed);
@@ -911,9 +915,9 @@ export default function UsersPage() {
                 variant={actionType === "reject" ? "destructive" : "default"}
                   onClick={() => {
                     if (actionType && selectedApplication) {
-                      handlePractitionerStatus(selectedApplication.id, actionType);
+                      handlePractitionerStatus(selectedApplication.id, selectedApplication.userId, actionType);
                     } else if (actionType && selectedPractitioner) {
-                      handlePractitionerStatus(selectedPractitioner.id, actionType);
+                      handlePractitionerStatus(selectedPractitioner.id, selectedPractitioner.user_id, actionType);
                     }
                   }}
                 >
