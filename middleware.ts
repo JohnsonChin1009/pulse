@@ -7,6 +7,17 @@ export const dynamic = "force-dynamic";
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
+  // Public routes that don't require authentication
+  const publicRoutes = [
+    '/api/auth/register',
+    '/api/auth/login', 
+    '/api/auth/user-exists'
+  ];
+
+  if (publicRoutes.some(route => path.startsWith(route))) {
+    return NextResponse.next();
+  }
+
   const token = req.cookies.get("auth_token")?.value;
 
   if (!token) {
@@ -25,14 +36,35 @@ export async function middleware(req: NextRequest) {
 
     // Role-based access
     const roleAccess: Record<string, string[]> = {
-      admin: ["/admin", "/api/admin", "/api/system", "/api/get-cookie", "/api/ws", "/api/auth"],
-      user: ["/user", "/api/user", "/api/get-cookie", "/api/ws", "/api/auth"],
-      practitioner: ["/practitioner", "/api/practitioner", "/api/get-cookie", "/api/ws", "/api/auth"],
+      admin: [
+        "/admin",
+        "/api/admin",
+        "/api/system",
+        "/api/oauth/get-cookie",
+        "/api/ws",
+        "/api/auth",
+      ],
+      user: [
+        "/user",
+        "/api/user",
+        "/api/auth/get-cookie",
+        "/api/ws",
+        "/api/auth",
+      ],
+      practitioner: [
+        "/practitioner",
+        "/api/practitioner",
+        "/api/auth/get-cookie",
+        "/api/ws",
+        "/api/auth/",
+      ],
     };
 
     const allowedPaths = roleAccess[decoded.role] || [];
     const normalizedPath = path.replace(/\/$/, ""); // remove trailing slash
-    const hasAccess = allowedPaths.some((p) => normalizedPath === p || normalizedPath.startsWith(p + "/"));
+    const hasAccess = allowedPaths.some(
+      (p) => normalizedPath === p || normalizedPath.startsWith(p + "/"),
+    );
 
     if (!hasAccess) {
       console.log("[Middleware] Access denied. Redirecting to /sign-in");
@@ -41,9 +73,12 @@ export async function middleware(req: NextRequest) {
 
     // Redirect logged-in users away from /sign-in
     if (path === "/sign-in") {
-      if (decoded.role === "admin") return NextResponse.redirect(new URL("/admin", req.url));
-      if (decoded.role === "practitioner") return NextResponse.redirect(new URL("/practitioner", req.url));
-      if (decoded.role === "user") return NextResponse.redirect(new URL("/user", req.url));
+      if (decoded.role === "admin")
+        return NextResponse.redirect(new URL("/admin", req.url));
+      if (decoded.role === "practitioner")
+        return NextResponse.redirect(new URL("/practitioner", req.url));
+      if (decoded.role === "user")
+        return NextResponse.redirect(new URL("/user", req.url));
     }
 
     // Forward user info to APIs
@@ -68,7 +103,6 @@ export const config = {
     "/api/user/:path*",
     "/api/practitioner/:path*",
     "/api/system/:path*",
-    "/api/get-cookie/:path*",
     "/api/auth/:path*",
     "/admin",
     "/user",

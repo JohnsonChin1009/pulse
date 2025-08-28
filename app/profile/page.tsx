@@ -3,6 +3,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
+import { PenLine } from "lucide-react"; // ✅ import the icon
 
 export default function ProfilePage() {
   const achievements = [
@@ -33,23 +34,43 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="absolute top-0 left-0 max-h-screen w-full">
+    <div
+      className="
+        flex flex-col
+        min-h-screen
+        max-w-md
+        mx-auto
+        px-8
+        pt-36 md:pt-0
+        md:justify-center md:items-center
+        lg:py-8
+      "
+    >
+      {/* Background only for mobile */}
+      <div className="absolute top-0 left-0 max-h-screen w-full md:hidden">
         <img
           src="/decorators/top-background.svg"
           alt="Top Background"
           className="w-full h-full object-cover"
         />
       </div>
-      <div className="flex-1 flex flex-col items-center justify-between px-8 pt-36">
+
+      <div className="flex-1 flex flex-col items-center justify-between w-full">
         <div className="space-y-20 w-full">
+          {/* Profile */}
           <div className="flex flex-col items-center justify-center space-y-2">
             <Avatar className="w-32 h-32 border-[2px] border-black">
               <AvatarImage src="https://avatars.githubusercontent.com/u/107231772?v=4" />
               <AvatarFallback>JC</AvatarFallback>
             </Avatar>
             <div className="space-y-1 text-center">
-              <p className="font-headline">johnson</p>
+              <div className="flex items-center justify-center gap-2">
+                <p className="font-headline">johnson</p>
+                <PenLine
+                  size={18}
+                  className="cursor-pointer text-muted-foreground hover:text-foreground transition"
+                />
+              </div>
               <p className="font-main">Journeyman</p>
             </div>
           </div>

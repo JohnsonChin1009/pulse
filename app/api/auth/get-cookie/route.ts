@@ -1,4 +1,3 @@
-// app/api/get-cookie/route.ts
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 

@@ -1,14 +1,16 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FcGoogle } from "react-icons/fc";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function SignInPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // form state
   const [email, setEmail] = useState("");
@@ -17,38 +19,67 @@ export default function SignInPage() {
   // UI/control state
   const [isUser, setIsUser] = useState(false); // false = ask email, true = ask password
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+
+  // Check for success message on component mount
+  useEffect(() => {
+    const message = searchParams.get("message");
+    if (message === "success") {
+      toast.success("Registration successful! Please sign in.");
+      // Clean up the URL parameter
+      const url = new URL(window.location.href);
+      url.searchParams.delete("message");
+      window.history.replaceState(null, "", url.toString());
+    }
+  }, [searchParams]);
 
   const handleContinueOrLogin = async () => {
-    setErr(null);
 
     // STEP 1: Check if user exists
     if (!isUser) {
       if (!email) {
-        setErr("Please enter your email.");
+        toast.error("Please enter your email.");
         return;
       }
       setLoading(true);
+
       try {
-        const res = await fetch("/api/user-exists", {
+        const res = await fetch("/api/auth/user-exists", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
         });
-        const data = await res
-          .json()
-          .catch(() => ({}) as { exists?: boolean; error?: string });
+
+        const data = await res.json().catch(
+          () =>
+            ({}) as {
+              exists?: boolean;
+              hasPassword?: boolean;
+              error?: string;
+            },
+        );
 
         if (!res.ok) throw new Error(data.error || "Failed to check account.");
 
         if (data.exists) {
-          // Show password field + change button label to "Login"
-          setIsUser(true);
+          if (data.hasPassword) {
+            setIsUser(true);
+          } else {
+            toast.error(
+              <div className="min-w-full flex flex-col space-y-1">
+                <p className="font-bold font-main">
+                  Please continue with Google
+                </p>
+                <p className="font-main">
+                  This account is associated with Google Oauth
+                </p>
+              </div>,
+            );
+          }
         } else {
-          router.push(`/user-register?email=${encodeURIComponent(email)}`);
+          router.push(`/register?email=${encodeURIComponent(email)}`);
         }
       } catch (e: any) {
-        setErr(e.message || "Something went wrong.");
+        toast.error(e.message || "Something went wrong.");
       } finally {
         setLoading(false);
       }
@@ -57,24 +88,25 @@ export default function SignInPage() {
 
     // STEP 2: Login
     if (!password) {
-      setErr("Please enter your password.");
+      toast.error("Please enter your password.");
       return;
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/login", {
+      // TODO: complete the login function and redirect to necessary page
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       if (res.ok) {
-        router.push("/"); // success
+        router.push("/dashboard");
       } else {
         const data = await res.json().catch(() => ({}));
-        setErr(data.error || "Invalid email or password.");
+        toast.error(data.error || "Invalid email or password.");
       }
     } catch (e: any) {
-      setErr(e.message || "Login failed.");
+      toast.error(e.message || "Login failed.");
     } finally {
       setLoading(false);
     }
@@ -133,7 +165,6 @@ export default function SignInPage() {
             </div>
           )}
 
-          {err && <p className="text-sm text-red-600">{err}</p>}
         </div>
 
         <Button

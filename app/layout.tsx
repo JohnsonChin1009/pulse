@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Dela_Gothic_One, Montserrat } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "react-hot-toast"
+import { Toaster } from "react-hot-toast";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const dela_gothic_one = Dela_Gothic_One({
   variable: "--font-dela-gothic-one",
@@ -30,7 +31,9 @@ export default function RootLayout({
       <body
         className={`${dela_gothic_one.variable} ${montserrat.variable} antialiased scroll-smooth`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Toaster position="top-right" />
       </body>
     </html>
