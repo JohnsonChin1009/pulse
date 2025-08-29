@@ -61,6 +61,7 @@ CREATE TABLE "oauth_accounts" (
 CREATE TABLE "pets" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"pet_name" varchar(256) NOT NULL,
+	"pet_type" varchar(256) NOT NULL,
 	"pet_level" integer DEFAULT 1 NOT NULL,
 	"pet_happiness" integer DEFAULT 50 NOT NULL,
 	"pet_status" varchar(256) DEFAULT 'healthy' NOT NULL,

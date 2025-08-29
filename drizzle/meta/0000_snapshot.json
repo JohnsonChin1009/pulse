@@ -1,5 +1,5 @@
 {
-  "id": "62048244-37b3-46d6-b3ff-6d9f2ce4e1ad",
+  "id": "4bd5bd8b-ef91-4e9e-865a-faabae9b833c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -471,6 +471,12 @@
         },
         "pet_name": {
           "name": "pet_name",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pet_type": {
+          "name": "pet_type",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": true
