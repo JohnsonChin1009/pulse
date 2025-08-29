@@ -9,12 +9,12 @@ export async function middleware(req: NextRequest) {
 
   // Public routes that don't require authentication
   const publicRoutes = [
-    '/api/auth/register',
-    '/api/auth/login', 
-    '/api/auth/user-exists'
+    "/api/auth/register",
+    "/api/auth/login",
+    "/api/auth/user-exists",
   ];
 
-  if (publicRoutes.some(route => path.startsWith(route))) {
+  if (publicRoutes.some((route) => path.startsWith(route))) {
     return NextResponse.next();
   }
 
@@ -40,7 +40,7 @@ export async function middleware(req: NextRequest) {
         "/admin",
         "/api/admin",
         "/api/system",
-        "/api/oauth/get-cookie",
+        "/api/auth/oauth/get-cookie",
         "/api/ws",
         "/api/auth",
       ],

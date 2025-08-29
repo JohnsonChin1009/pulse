@@ -13,7 +13,7 @@ export async function GET(request: Request) {
 
   const clientID = process.env.GOOGLE_CLIENT_ID!;
   const baseURL = process.env.OAUTH_BASE_URL!;
-  const redirectUri = `${baseURL}/api/oauth/callback?provider=google`;
+  const redirectUri = `${baseURL}/api/auth/oauth/callback?provider=google`;
 
   const state = randUrlSafe(16);
   const verifier = randUrlSafe(64);

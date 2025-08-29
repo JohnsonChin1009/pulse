@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db/connection";
-import { users, oauth_accounts } from "@/lib/db/schema";
+import { users, oauth_accounts, pets, leaderboards } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import * as jose from "jose";
 import { cookieOpts } from "@/lib/oauth";
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
   const clientId = process.env.GOOGLE_CLIENT_ID!;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
   const baseURL = process.env.OAUTH_BASE_URL!;
-  const redirectURI = `${baseURL}/api/oauth/callback?provider=google`;
+  const redirectURI = `${baseURL}/api/auth/oauth/callback?provider=google`;
 
   const body = new URLSearchParams({
     client_id: clientId,
@@ -150,16 +150,52 @@ export async function GET(request: Request) {
     if (exists) {
       userId = exists.id;
     } else {
-      // Create a user (no password hash since using Oauth)
-      const [created] = await db
-        .insert(users)
-        .values({
-          email,
-          username: name,
-          profile_picture_url: image,
-        })
-        .returning();
-      userId = created.id;
+      // Create a user (no password hash since using Oauth) with pet and leaderboard
+      const result = await db.transaction(async (tx) => {
+        const [created] = await tx
+          .insert(users)
+          .values({
+            email,
+            username: name,
+            profile_picture_url: image,
+            role: "user",
+          })
+          .returning();
+
+        // Create a pet for the new OAuth user
+        const petNames = [
+          "Pulse Buddy",
+          "Heart Helper",
+          "Cardio Companion",
+          "Wellness Warrior",
+          "Health Hero",
+          "Fit Friend",
+          "Active Angel",
+          "Vitality Pal",
+        ];
+        const randomPetName =
+          petNames[Math.floor(Math.random() * petNames.length)];
+
+        await tx.insert(pets).values({
+          pet_name: randomPetName,
+          pet_level: 1,
+          pet_happiness: 50,
+          pet_status: "happy",
+          user_id: created.id,
+        });
+
+        // Create initial leaderboard entry
+        await tx.insert(leaderboards).values({
+          highest_level: 1,
+          highest_score_cumulative: 0,
+          hightest_most_achievement: 0,
+          user_id: created.id,
+        });
+
+        return created;
+      });
+
+      userId = result.id;
     }
 
     await db
@@ -179,15 +215,31 @@ export async function GET(request: Request) {
       .onConflictDoNothing();
   }
 
+  const [u] = await db
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  const userRole = u?.role ?? "user";
+
   // Issuing JWT to pulse app
   const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
-  const jwt = await new jose.SignJWT({ sub: userId, email, role: "user" })
+  const jwt = await new jose.SignJWT({ sub: userId, email, role: userRole })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
     .sign(secret);
 
-  const res = NextResponse.redirect(new URL("/", baseURL));
+  const roleRedirectMap: Record<string, string> = {
+    admin: "/admin",
+    practitioner: "/practitioner",
+    user: "/user",
+  };
+
+  const redirectPath = roleRedirectMap[userRole] ?? "/user";
+
+  const res = NextResponse.redirect(new URL(redirectPath, baseURL));
   res.cookies.set({
     name: "auth_token",
     value: jwt,

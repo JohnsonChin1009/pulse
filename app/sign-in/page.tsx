@@ -33,7 +33,6 @@ export default function SignInPage() {
   }, [searchParams]);
 
   const handleContinueOrLogin = async () => {
-
     // STEP 1: Check if user exists
     if (!isUser) {
       if (!email) {
@@ -164,7 +163,6 @@ export default function SignInPage() {
               </Button>
             </div>
           )}
-
         </div>
 
         <Button
