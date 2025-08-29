@@ -50,6 +50,7 @@ export const oauth_accounts = pgTable(
 export const pets = pgTable("pets", {
   id: serial("id").primaryKey(), // Changed to serial for auto-increment
   pet_name: varchar("pet_name", { length: 256 }).notNull(),
+  pet_type: varchar("pet_type", { length: 256 }).notNull(),
   pet_level: integer("pet_level").notNull().default(1),
   pet_happiness: integer("pet_happiness").notNull().default(50),
   pet_status: varchar("pet_status", { length: 256 })
