@@ -95,6 +95,26 @@ export const usersRepository = {
       });
 
     return updatedUser; // { id, suspension_status, online_status }
-  }
+  },
+
+  // upgrade user as admin
+  async upgrade(userId: string): Promise<UserRow | null> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ role: "admin" })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser ?? null;
+  },
+
+  // downgrade admin as user
+  async downgrade(userId: string): Promise<UserRow | null> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ role: "user" })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser ?? null;
+  },
 
 };

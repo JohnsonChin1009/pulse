@@ -1,6 +1,6 @@
 
 import AdminNavigator from "@/app/admin/navigator";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "./authContext";
 
 
 export default function AdminLayout({

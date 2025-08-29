@@ -28,8 +28,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function fetchUser() {
         try {
           const res = await fetch("/api/auth/me", { credentials: "include" });
-
-          // Only try to parse JSON if response is actually JSON
           const contentType = res.headers.get("content-type");
           if (res.ok && contentType?.includes("application/json")) {
             const data = await res.json();

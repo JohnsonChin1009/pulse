@@ -32,6 +32,8 @@ import {
   TrendingUp,
   X,
   UserCheckIcon,
+  UserMinus,
+  UserPlus,
 } from "lucide-react";
 import { useAuth } from "../authContext";
 import Link from "next/link";
@@ -73,6 +75,7 @@ export interface User {
   joinDate: string;
   lastActive: string;
   avatar: string | null;
+  role: string;
 }
 
 export interface Practitioner {
@@ -138,6 +141,48 @@ export default function UsersPage() {
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
 
   const { user: sessionUser } = useAuth();
+
+  const [openAdminDialog, setOpenAdminDialog] = useState(false);
+
+  const [selectedUserAdmin, setSelectedUserAdmin] = useState<User | null>(null);
+
+  const [adminAction, setAdminAction] = useState<"upgrade" | "degrade" | null>(null);
+
+  const handleUpgrade = async (userId: string) => {
+    try {
+      await fetch(`/api/admin/users/${userId}/upgrade`, {
+        method: "POST",
+      });
+      
+      setUserList((prev) =>
+        prev?.map((user) =>
+          user.id === userId ? { ...user, role: "admin" } : user
+        ) ?? null
+    );
+      toast.success("User upgraded to admin!");
+    } catch (error) {
+      toast.error("Failed to upgrade user.");
+      console.error(error);
+    }
+  };
+
+  const handleDegrade = async (userId: string) => {
+    try {
+      await fetch(`/api/admin/users/${userId}/degrade`, {
+        method: "POST",
+      });
+      setUserList((prev) =>
+        prev?.map((user) =>
+          user.id === userId ? { ...user, role: "user" } : user
+        ) ?? null
+      );
+      toast.success("User downgraded to user!");
+    } catch (error) {
+      toast.error("Failed to degrade user.");
+      console.error(error);
+    }
+  };
+
 
   const handlePractitionerStatus = async (
     practitionerId: number,
@@ -234,6 +279,7 @@ export default function UsersPage() {
           avatar: u.profile_picture_url ?? null,
           joinDate: u.created_at ?? "-",
           lastActive: u.updated_at ?? "-",
+          role: u.role ?? "",
           status:
             u.suspension_status === true
               ? "suspended"
@@ -243,6 +289,9 @@ export default function UsersPage() {
         }));
 
         setUserList(normalized);
+
+        console.log(normalized);
+
       } catch (error) {
         console.error("Error fetching user list:", error);
       }
@@ -464,6 +513,23 @@ export default function UsersPage() {
                   {user.status === "suspended"
                     ? "Unsuspend User"
                     : "Suspend User"}
+                </DropdownMenuItem>
+              )}
+              {user.status !== "suspended" && user.id !== sessionUser?.id && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedUserAdmin(user);
+                    setAdminAction(user.role === "admin" ? "degrade" : "upgrade");
+                    setOpenAdminDialog(true);
+                  }}
+                  className="flex items-center"
+                >
+                  {user.role === "admin" ? (
+                    <UserMinus className="w-4 h-4 mr-2" />
+                  ) : (
+                    <UserPlus className="w-4 h-4 mr-2" />
+                  )}
+                  {user.role === "admin" ? "Degrade to User" : "Upgrade to Admin"}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -927,6 +993,49 @@ export default function UsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+
+      <AlertDialog open={openAdminDialog} onOpenChange={setOpenAdminDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {adminAction === "upgrade"
+                ? `Upgrade ${selectedUserAdmin?.name} to Admin?`
+                : `Degrade ${selectedUserAdmin?.name} to User?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {adminAction === "upgrade"
+                ? "This user will gain admin privileges."
+                : "This user will lose admin privileges."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex justify-end gap-2">
+            <AlertDialogCancel asChild>
+              <Button variant="outline" className="rounded-xl">
+                Cancel
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button
+                className="w-full sm:w-25 rounded-xl"
+                variant="default"
+                onClick={() => {
+                  if (!selectedUserAdmin) return;
+
+                  if (adminAction === "upgrade") handleUpgrade(selectedUserAdmin.id);
+                  else if (adminAction === "degrade") handleDegrade(selectedUserAdmin.id);
+
+                  setOpenAdminDialog(false);
+                  setAdminAction(null);
+                }}
+              >
+                {adminAction === "upgrade" ? "Upgrade" : "Degrade"}
+              </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
 
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
