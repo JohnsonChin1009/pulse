@@ -81,14 +81,6 @@ export function HeroSection() {
             </div>
 
             <div className="flex flex-col sm:w-50 w-full sm:flex-row gap-4">
-              <Link href="/sign-in">
-                <Button
-                  variant="default"
-                  className="hover:opacity-90 font-main cursor-pointer"
-                >
-                  <span className="px-4">Start Now</span>
-                </Button>
-              </Link>
               <Button
                 variant="outline"
                 size="lg"
@@ -188,7 +180,10 @@ export function HeroSection() {
           </DialogHeader>
           <div className="aspect-video w-full bg-gray-100 rounded-lg overflow-hidden">
             <video className="w-full h-full object-cover" controls>
-              <source src="/video/Sample.mp4" type="video/mp4" />
+              <source
+                src="https://www.youtube.com/watch?v=1Di8X2vRNRE"
+                type="video/mp4"
+              />
               <p className="font-montserrat text-gray-600 p-8 text-center">
                 Your browser doesn&apos;t support video playback.
                 <br />

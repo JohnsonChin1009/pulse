@@ -78,7 +78,7 @@ export function Header() {
                 variant="default"
                 className="hover:opacity-90 font-headline font-medium"
               >
-                Get Started
+                Start Now
               </Button>
             </Link>
           </div>
