@@ -64,7 +64,7 @@ console.log(post)
           id: post.forumId.toString(),
           name: post.forumName || 'Unknown Forum',
           description: '',
-          color: 'bg-blue-500', // Default color
+          color: (post as any).forum?.color || 'bg-blue-500', // Use forum color from post data
           memberCount: 0 // We don't have member count in current schema
         };
         

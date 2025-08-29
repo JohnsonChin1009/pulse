@@ -38,7 +38,7 @@ export interface ForumComment {
 }
 
 // Custom hook for fetching forums
-export function useForums() {
+export function useForums(apiEndpoint: string = '/api/forums') {
   const [forums, setForums] = useState<Forum[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export function useForums() {
   const fetchForums = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/forums');
+      const response = await fetch(apiEndpoint);
       if (!response.ok) {
         throw new Error('Failed to fetch forums');
       }
@@ -68,7 +68,7 @@ export function useForums() {
 }
 
 // Custom hook for fetching posts
-export function usePosts(forumId?: number) {
+export function usePosts(forumId?: number, apiEndpoint: string = '/api/posts') {
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +76,7 @@ export function usePosts(forumId?: number) {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const url = forumId ? `/api/posts?forumId=${forumId}` : '/api/posts';
+      const url = forumId ? `${apiEndpoint}?forumId=${forumId}` : apiEndpoint;
       const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch posts');
@@ -93,7 +93,7 @@ export function usePosts(forumId?: number) {
 
   useEffect(() => {
     fetchPosts();
-  }, [forumId]);
+  }, [forumId, apiEndpoint]);
 
   return { posts, loading, error, refetch: fetchPosts };
 }
