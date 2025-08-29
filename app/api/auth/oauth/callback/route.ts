@@ -222,9 +222,10 @@ export async function GET(request: Request) {
     .limit(1);
 
   const userRole = u?.role ?? "user";
+  console.log("User Role being passed", userRole);
 
   // Issuing JWT to pulse app
-  const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
+const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
   const jwt = await new jose.SignJWT({ sub: userId, email, role: userRole })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()

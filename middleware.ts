@@ -103,7 +103,6 @@ export const config = {
     "/api/user/:path*",
     "/api/practitioner/:path*",
     "/api/system/:path*",
-    "/api/auth/:path*",
     "/admin",
     "/user",
     "/practitioner",

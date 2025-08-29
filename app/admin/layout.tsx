@@ -1,5 +1,7 @@
 
 import AdminNavigator from "@/app/admin/navigator";
+import { AuthProvider } from "@/contexts/AuthContext";
+
 
 export default function AdminLayout({
   children,
@@ -8,8 +10,10 @@ export default function AdminLayout({
 }>) {
   return (
     <div>
-      <AdminNavigator />
-      {children}
+      <AuthProvider>
+        <AdminNavigator />
+        {children}
+      </AuthProvider>
     </div>
   );
 }

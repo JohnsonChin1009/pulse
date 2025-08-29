@@ -26,18 +26,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function fetchUser() {
-      try {
-        const res = await fetch("/api/auth/me", { credentials: "include" });
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
+        try {
+          const res = await fetch("/api/auth/me", { credentials: "include" });
+
+          // Only try to parse JSON if response is actually JSON
+          const contentType = res.headers.get("content-type");
+          if (res.ok && contentType?.includes("application/json")) {
+            const data = await res.json();
+            setUser(data);
+          } else {
+            setUser(null);
+          }
+        } catch (err) {
+          console.error("Auth fetch error:", err);
+          setUser(null);
         }
-      } catch (err) {
-        console.error("Auth fetch error:", err);
-      } finally {
-        setLoading(false);
       }
-    }
+
     fetchUser();
   }, []);
 
