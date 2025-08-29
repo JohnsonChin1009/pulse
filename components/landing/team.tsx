@@ -29,7 +29,7 @@ export function TeamSection() {
       role: "Developer",
       image: "/images/soh.png",
       bio: "Design expert specializing in gamification and health app user experiences.",
-      traits: ["I want sleep", "I need food", "I am bored", "I am Sohai"],
+      traits: ["I want sleep", "I need food", "I am bored"],
       social: {
         linkedin: "https://www.linkedin.com/in/soh-jia-seng-39403b274/",
         github: "https://github.com/Sjiaseng",
@@ -102,12 +102,13 @@ export function TeamSection() {
                 </div>
               </div>
 
-              <div className="flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto relative z-10">
                 {Object.entries(member.social).map(([platform, link]) => (
                   <a
                     key={platform}
                     href={link}
                     className="w-8 h-8 bg-[#F5BE66]/10 hover:bg-[#F5BE66] rounded-full flex items-center justify-center transition-colors duration-200 group/social"
+                    target="_blank"
                   >
                     <span className="text-[#F5BE66] group-hover/social:text-white text-xs font-bold">
                       {platform === "linkedin"

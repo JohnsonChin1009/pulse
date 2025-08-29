@@ -192,7 +192,7 @@ export default function SignInPage() {
           <Button
             variant="outline"
             onClick={() =>
-              (window.location.href = "/api/oauth/start?provider=google")
+              (window.location.href = "/api/auth/oauth/start?provider=google")
             }
             className="w-full rounded-xl max-w-xs gap-2 p-5"
             disabled={loading}
