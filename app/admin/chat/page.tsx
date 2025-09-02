@@ -127,8 +127,10 @@ export default function LiveChatPage() {
       )
   }, [])
 
-  // mark as read if the user scroll to bottom of the scroll area
-  useEffect(() => {
+  const [hasMarkedRead, setHasMarkedRead] = useState(false);
+
+  // mark as read once only 
+   useEffect(() => {
     if (!selectedConversation?.id || !currentUserId) return;
 
     const container = chatContainerRef.current;
@@ -145,16 +147,17 @@ export default function LiveChatPage() {
       return diff <= 20;
     };
 
+    let scrollTimeout: NodeJS.Timeout | null = null;
     const handleScroll = () => {
-      console.log("[Scroll event]", {
-        scrollTop: container.scrollTop,
-        clientHeight: container.clientHeight,
-        scrollHeight: container.scrollHeight,
-      });
-      if (checkAtBottom()) {
-        console.log("[Chat] At bottom → marking as read");
-        markConversationAsRead(selectedConversation.id, currentUserId);
-      }
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+
+      scrollTimeout = setTimeout(() => {
+        if (checkAtBottom() && !hasMarkedRead) {
+          console.log("[Chat] At bottom → marking as read");
+          markConversationAsRead(selectedConversation.id, currentUserId);
+          setHasMarkedRead(true);
+        }
+      }, 100); 
     };
 
     container.addEventListener("scroll", handleScroll);
@@ -175,11 +178,14 @@ export default function LiveChatPage() {
 
     channel.subscribe("read", handleReadEvent);
 
+    setHasMarkedRead(false);
+
     return () => {
       container.removeEventListener("scroll", handleScroll);
       channel.unsubscribe("read", handleReadEvent);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
     };
-  }, [selectedConversation?.id, currentUserId]);
+  }, [selectedConversation?.id, currentUserId, setAllConversations, hasMarkedRead]);
 
   // listen for messages directed to any user
   useEffect(() => {

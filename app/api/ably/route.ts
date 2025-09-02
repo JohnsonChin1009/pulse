@@ -15,5 +15,7 @@ export async function GET(req: Request) {
     clientId, 
   });
 
+  console.log(clientId);
+
   return NextResponse.json(tokenRequest);
 }
