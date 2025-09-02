@@ -5,11 +5,11 @@ import { achievements } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 const s3 = new S3Client({
-  region: process.env.AWS_S3_REGION,
+  region: process.env.AWS_REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID_S3!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY_S3!,
-    sessionToken: process.env.AWS_SESSION_TOKEN_S3,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    sessionToken: process.env.AWS_SESSION_TOKEN,
   },
 });
 
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
       await s3.send(
         new PutObjectCommand({
-          Bucket: process.env.AWS_S3_BUCKET_NAME!,
+          Bucket: process.env.S3_BUCKET_NAME!,
           Key: s3Key,
           Body: buffer,
           ContentType: imageFile.type,
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         })
       );
 
-      imageUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_S3_REGION}.amazonaws.com/${s3Key}`;
+      imageUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
 
       // Update achievement with image URL
       const [updatedAchievement] = await db

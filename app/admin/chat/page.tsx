@@ -129,14 +129,12 @@ export default function LiveChatPage() {
 
   const [hasMarkedRead, setHasMarkedRead] = useState(false);
 
-  // mark as read once only 
+  // mark as read once only per scroll to bottom
    useEffect(() => {
     if (!selectedConversation?.id || !currentUserId) return;
 
     const container = chatContainerRef.current;
     if (!container) return;
-
-    console.log("[Chat] useEffect mounted for", selectedConversation.id);
 
     const ablyClient = getAblyClient();
     const channel = ablyClient.channels.get(`chat-${selectedConversation.id}`);
@@ -153,7 +151,7 @@ export default function LiveChatPage() {
 
       scrollTimeout = setTimeout(() => {
         if (checkAtBottom() && !hasMarkedRead) {
-          console.log("[Chat] At bottom → marking as read");
+          console.log("Marking Chat As Read");
           markConversationAsRead(selectedConversation.id, currentUserId);
           setHasMarkedRead(true);
         }
@@ -163,7 +161,7 @@ export default function LiveChatPage() {
     container.addEventListener("scroll", handleScroll);
 
     const handleReadEvent = (msg: any) => {
-      console.log("[Chat] Read event received", msg.data);
+      console.log("Received Read Event", msg.data);
       const { sessionId, userId } = msg.data;
       if (sessionId === selectedConversation.id) {
         setAllConversations((prev) =>

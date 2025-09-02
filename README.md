@@ -34,7 +34,7 @@ npm run dynamodb
 3. S3 Buckets: [uses personal aws account -> .env] [Bucket Name: pulse] 
 Note: require access key & secret rotation - 4 hours # Self-Host in Development
 
-` Require [AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_LOGIN_SESSION_TOKEN AWS_S3_BUCKET_NAME] `
+` Require [AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_LOGIN_SESSION_TOKEN S3_BUCKET_NAME] `
 ` Getting through LEARNER LAB INFO SECTION `
 Note: Document Saving [profile picture, live chat, practitioner verification, achievement image]
 

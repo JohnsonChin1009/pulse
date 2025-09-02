@@ -5,15 +5,15 @@ import { db } from "@/lib/db/connection";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 const s3 = new S3Client({
-  region: process.env.AWS_S3_REGION,
+  region: process.env.AWS_REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID_S3!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY_S3!,
-    sessionToken: process.env.AWS_SESSION_TOKEN_S3,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    sessionToken: process.env.AWS_SESSION_TOKEN,
   },
 });
 
-const BUCKET = process.env.AWS_S3_BUCKET_NAME || "";
+const BUCKET = process.env.S3_BUCKET_NAME || "";
 
 export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   try {
