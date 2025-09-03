@@ -1,6 +1,7 @@
 
 import AdminNavigator from "@/app/admin/navigator";
 import { AuthProvider } from "./authContext";
+import { OnlinePresence } from "@/lib/online-status/online_presence";
 
 
 export default function AdminLayout({
@@ -11,6 +12,7 @@ export default function AdminLayout({
   return (
     <div>
       <AuthProvider>
+        <OnlinePresence />
         <AdminNavigator />
         {children}
       </AuthProvider>

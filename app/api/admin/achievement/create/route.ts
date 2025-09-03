@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, ListBucketsCommand } from "@aws-sdk/client-s3";
 import { db } from "@/lib/db/connection";
 import { achievements } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -13,6 +13,7 @@ const s3 = new S3Client({
   },
 });
 
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -23,20 +24,16 @@ export async function POST(req: NextRequest) {
     const imageFile = formData.get("image") as File | null;
 
     if (!title || !description || isNaN(questId)) {
-      console.log(
-        "title:",
-        title,
-        "description:",
-        description,
-        "questId:",
-        questId,
-        "imageFile:",
-        imageFile,
-      );
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 },
-      );
+      console.log("title:", title, "description:", description, "questId:", questId, "imageFile:", imageFile);
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    try{
+      const result = await s3.send(new ListBucketsCommand({}))
+      console.log("S3 Connection Success:", result.Buckets);
+    }catch(err){
+      console.error("S3 Connection Error:", err);
+      return NextResponse.json({ error: "Failed to connect to S3" }, { status: 500 });
     }
 
     // Insert achievement
@@ -46,15 +43,12 @@ export async function POST(req: NextRequest) {
         achievement_title: title,
         achievement_description: description,
         quest_id: questId,
-        achievement_icon: "",
+        achievement_icon: "", 
       })
       .returning();
 
     if (!newAchievement?.id) {
-      return NextResponse.json(
-        { error: "Failed to create achievement" },
-        { status: 500 },
-      );
+      return NextResponse.json({ error: "Failed to create achievement" }, { status: 500 });
     }
 
     let imageUrl = "";
@@ -69,7 +63,7 @@ export async function POST(req: NextRequest) {
           Body: buffer,
           ContentType: imageFile.type,
           ACL: "public-read",
-        }),
+        })
       );
 
       imageUrl = `https://${process.env.S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
@@ -88,9 +82,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ achievement: newAchievement });
   } catch (err) {
     console.error("Failed to create achievement:", err);
-    return NextResponse.json(
-      { error: "Failed to create achievement" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to create achievement" }, { status: 500 });
   }
 }

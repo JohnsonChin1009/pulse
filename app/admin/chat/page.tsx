@@ -110,9 +110,8 @@ export default function LiveChatPage() {
     fetchConversations();
   }, [currentUserId]);
 
-
-  // fetch all users in add user dialog (Completed)
   useEffect(() => {
+    // 1. Fetch initial users
     fetch("/api/chat/users")
       .then((res) => res.json())
       .then((data) =>
@@ -120,12 +119,34 @@ export default function LiveChatPage() {
           data.map((u: any) => ({
             id: u.id,
             name: u.username,
+            email: u.email,
             avatar: u.profile_picture_url ?? "/images/johnson.png",
             status: u.online_status ? "online" : "offline",
           }))
         )
-      )
-  }, [])
+      );
+
+    const ably = getAblyClient();
+    const channel = ably.channels.get("online-status");
+
+    const handlePresence = (presence: any) => {
+      setAvailableUsers((prev) =>
+        prev.map((user) =>
+          user.email === presence.clientId
+            ? { ...user, status: presence.action === "enter" ? "online" : "offline" }
+            : user
+        )
+      );
+    };
+
+    channel.presence.subscribe("enter", handlePresence);
+    channel.presence.subscribe("leave", handlePresence);
+
+    return () => {
+      channel.presence.unsubscribe("enter", handlePresence);
+      channel.presence.unsubscribe("leave", handlePresence);
+    };
+  }, []);
 
   const [hasMarkedRead, setHasMarkedRead] = useState(false);
 
@@ -142,7 +163,7 @@ export default function LiveChatPage() {
     const checkAtBottom = () => {
       const diff =
         container.scrollHeight - container.scrollTop - container.clientHeight;
-      return diff <= 20;
+      return diff <= 5;
     };
 
     let scrollTimeout: NodeJS.Timeout | null = null;
@@ -473,10 +494,10 @@ export default function LiveChatPage() {
           <Button
             variant="outline"
             onClick={() => handleView(att)}
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 hover:bg-black/70 text-white p-1 h-8 w-8"
+            className="absolute cursor-pointer top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 hover:bg-black/70 text-white p-1 h-8 w-8"
             size="sm"
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-4 h-4 cursor-pointer" />
           </Button>
           <div className="mt-1 text-xs opacity-70 truncate">
             {att.name} • {sizeKb} KB
@@ -496,10 +517,10 @@ export default function LiveChatPage() {
         <Button
           variant="outline"
           onClick={() => handleView(att)}
-          className="bg-white/20 hover:bg-white/30 text-current p-1 h-8 w-8 border-0"
+          className="bg-white/20 hover:bg-black/30 text-current p-1 cursor-pointer h-8 w-8 border border-black/20"
           size="sm"
         >
-          <Eye className="w-4 h-4" />
+          <Eye className="w-4 h-4 cursor-pointer" />
         </Button>
       </div>
     );
