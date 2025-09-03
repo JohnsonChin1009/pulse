@@ -40,11 +40,12 @@ export const usersRepository = {
   },
 
   // selecting all user from the database to create chat session
-  async listUser(): Promise<{ id: string; username: string; profile_picture_url: string | null; online_status: boolean | null }[]> {
+  async listUser(): Promise<{ id: string; username: string; email: string; profile_picture_url: string | null; online_status: boolean | null }[]> {
     return db
       .select({
         id: users.id,
         username: users.username,
+        email: users.email,
         profile_picture_url: users.profile_picture_url,
         online_status: users.online_status,
       })
@@ -115,6 +116,29 @@ export const usersRepository = {
       .where(eq(users.id, userId))
       .returning();
     return updatedUser ?? null;
+  },
+
+  // determine online status by email
+  async setOnlineStatusByEmail(email: string, isOnline: boolean): Promise<UserRow | null> {
+    const [row] = await db
+      .update(users)
+      .set({
+        online_status: isOnline,
+      })
+      .where(eq(users.email, email))
+      .returning();
+
+    return row ?? null;
+  },
+
+  // make user status online
+  async setOnline(userEmail: string): Promise<UserRow | null> {
+    return this.setOnlineStatusByEmail(userEmail, true);
+  },
+
+  // make user status offline
+  async setOffline(userEmail: string): Promise<UserRow | null> {
+    return this.setOnlineStatusByEmail(userEmail, false);
   },
 
 };

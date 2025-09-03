@@ -1,22 +1,34 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import Ably from "ably";
+import { jwtVerify } from "jose";
 
-export const runtime = "nodejs";
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
+export async function GET(req: NextRequest) {
+  const token = req.cookies.get("auth_token")?.value;
 
-export async function GET(req: Request) {
-  const rest = new Ably.Rest(process.env.ABLY_API_KEY!);
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  const { searchParams } = new URL(req.url);
-  const clientId = searchParams.get("clientId") ?? undefined;
+  try {
+    const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
+    const { payload } = await jwtVerify(token, secret);
 
-  const tokenRequest = await rest.auth.createTokenRequest({
-    clientId,
-  });
+    const decoded = payload as {
+      sub: string;
+      email: string;
+      role: "admin" | "user" | "practitioner";
+    };
 
-  console.log(clientId);
+    const clientId = decoded.email;
 
-  console.log(clientId);
-  return NextResponse.json(tokenRequest);
+    const rest = new Ably.Rest(process.env.ABLY_API_KEY!);
+    const tokenRequest = await rest.auth.createTokenRequest({
+      clientId,
+    });
+
+    return NextResponse.json(tokenRequest);
+  } catch (err) {
+    console.error("[Ably Auth] JWT verification failed:", err);
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 }
