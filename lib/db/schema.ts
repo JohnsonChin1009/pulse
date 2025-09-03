@@ -51,6 +51,7 @@ export const pets = pgTable("pets", {
   id: serial("id").primaryKey(), // Changed to serial for auto-increment
   pet_name: varchar("pet_name", { length: 256 }).notNull(),
   pet_type: varchar("pet_type", { length: 256 }).notNull(),
+  pet_experience: integer("pet_experience").notNull().default(0),
   pet_level: integer("pet_level").notNull().default(1),
   pet_happiness: integer("pet_happiness").notNull().default(50),
   pet_status: varchar("pet_status", { length: 256 })
@@ -107,7 +108,7 @@ export const leaderboards = pgTable("leaderboards", {
   id: serial("id").primaryKey(),
   highest_level: integer("highest_level").default(0),
   highest_score_cumulative: integer("highest_score_cumulative").default(0),
-  hightest_most_achievement: integer("hightest_most_achievement").default(0),
+  highest_most_achievement: integer("hightest_most_achievement").default(0),
   user_id: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),

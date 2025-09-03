@@ -1,4 +1,4 @@
-import PostCard from './PostCard';
+import PostCard from "./PostCard";
 
 // Updated interfaces to match the real data structure from database
 interface RealPost {
@@ -18,9 +18,10 @@ interface RealPost {
 
 interface PostListProps {
   posts: RealPost[];
+  baseRoute?: string;
 }
 
-export default function PostList({ posts }: PostListProps) {
+export default function PostList({ posts, baseRoute }: PostListProps) {
   if (posts.length === 0) {
     return (
       <div className="text-center py-12">
@@ -35,8 +36,7 @@ export default function PostList({ posts }: PostListProps) {
   return (
     <div className="space-y-4">
       {posts.map((post) => {
-
-console.log(post)
+        // console.log(post)
 
         // Transform real data to match PostCard's expected format
         const transformedPost = {
@@ -49,31 +49,32 @@ console.log(post)
           forumId: post.forumId.toString(),
           userId: post.userId,
           commentCount: post.commentCount,
-          username: post.username || 'Unknown',
-          forumName: post.forumName || 'Unknown Forum'
+          username: post.username || "Unknown",
+          forumName: post.forumName || "Unknown Forum",
         };
 
         // Create user object for PostCard
         const user = {
           id: post.userId,
-          username: post.username || 'Unknown',
+          username: post.username || "Unknown",
         };
 
         // Create forum object for PostCard
         const forum = {
           id: post.forumId.toString(),
-          name: post.forumName || 'Unknown Forum',
-          description: '',
-          color: (post as any).forum?.color || 'bg-blue-500', // Use forum color from post data
-          memberCount: 0 // We don't have member count in current schema
+          name: post.forumName || "Unknown Forum",
+          description: "",
+          color: (post as any).forum?.color || "bg-blue-500", // Use forum color from post data
+          memberCount: 0, // We don't have member count in current schema
         };
-        
+
         return (
           <PostCard
             key={post.id}
             post={transformedPost}
             user={user}
             forum={forum}
+            baseRoute={baseRoute}
           />
         );
       })}

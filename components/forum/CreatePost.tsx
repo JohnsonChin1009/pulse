@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { forumAPI } from '@/lib/hooks/useForum';
-import { Plus, X, Send } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { forumAPI } from "@/lib/hooks/useForum";
+import { useAuth } from "@/contexts/AuthContext";
+import { Plus, X, Send } from "lucide-react";
 
 interface CreatePostProps {
   // For main forum page interface
@@ -15,47 +16,53 @@ interface CreatePostProps {
   }>;
   selectedForumId?: string;
   onPostCreated?: () => void;
-  
+
   // For specific forum page interface
   forumId?: number;
   onClose?: () => void;
 }
 
-export default function CreatePost({ forums, selectedForumId, onPostCreated, forumId, onClose }: CreatePostProps) {
+export default function CreatePost({
+  forums,
+  selectedForumId,
+  onPostCreated,
+  forumId,
+  onClose,
+}: CreatePostProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedForum, setSelectedForum] = useState(selectedForumId || '');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedForum, setSelectedForum] = useState(selectedForumId || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableForums, setAvailableForums] = useState(forums || []);
 
   // If forumId is provided, this is being used in specific forum page mode
   const isSpecificForumMode = !!forumId;
-  
+
   // If in specific forum mode, set isOpen to true by default and fetch forums if not provided
   useEffect(() => {
     if (isSpecificForumMode) {
       setIsOpen(true);
       setSelectedForum(forumId.toString());
-      
+
       // Fetch forums if not provided
       if (!forums || forums.length === 0) {
         const fetchForums = async () => {
           try {
-            const response = await fetch('/api/forums');
+            const response = await fetch("/api/forums");
             if (response.ok) {
               const forumsData = await response.json();
               const transformedForums = forumsData.map((forum: any) => ({
                 id: forum.id.toString(),
                 name: forum.topic,
-                description: forum.description || '',
-                color: 'bg-blue-500',
-                memberCount: 0
+                description: forum.description || "",
+                color: "bg-blue-500",
+                memberCount: 0,
               }));
               setAvailableForums(transformedForums);
             }
           } catch (error) {
-            console.error('Error fetching forums:', error);
+            console.error("Error fetching forums:", error);
           }
         };
         fetchForums();
@@ -63,49 +70,54 @@ export default function CreatePost({ forums, selectedForumId, onPostCreated, for
     }
   }, [isSpecificForumMode, forumId, forums]);
 
+  const { user } = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !description.trim() || !selectedForum || isSubmitting) return;
+    if (!title.trim() || !description.trim() || !selectedForum || isSubmitting)
+      return;
+
+    if (!user?.id) {
+      alert("You must be logged in to create a post");
+      return;
+    }
 
     setIsSubmitting(true);
-    
+
     try {
-      // For now, we'll use a placeholder user ID
-      // In a real app, you'd get this from authentication context
-      const userId = '46e7628d-a464-43f6-a6ea-1163f7bae42b'; // TODO: Get from auth context
-      
-      console.log('Creating post with data:', {
+
+      console.log("Creating post with data:", {
         title: title.trim(),
         description: description.trim(),
         forum_id: parseInt(selectedForum),
-        user_id: userId,
+        user_id: user.id,
       });
-      
+
       const response = await forumAPI.createPost({
         title: title.trim(),
         description: description.trim(),
         forum_id: parseInt(selectedForum),
-        user_id: userId,
+        user_id: user.id,
       });
-      
-      console.log('Post created successfully:', response);
-      
+
+      console.log("Post created successfully:", response);
+
       // Reset form
-      setTitle('');
-      setDescription('');
-      setSelectedForum(selectedForumId || '');
-      
+      setTitle("");
+      setDescription("");
+      setSelectedForum(selectedForumId || "");
+
       if (isSpecificForumMode) {
         onClose?.();
       } else {
         setIsOpen(false);
       }
-      
+
       // Notify parent to refresh
       onPostCreated?.();
     } catch (error) {
-      console.error('Error creating post:', error);
-      alert('Failed to create post. Please try again.');
+      console.error("Error creating post:", error);
+      alert("Failed to create post. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -117,9 +129,9 @@ export default function CreatePost({ forums, selectedForumId, onPostCreated, for
     } else {
       setIsOpen(false);
     }
-    setTitle('');
-    setDescription('');
-    setSelectedForum(selectedForumId || '');
+    setTitle("");
+    setDescription("");
+    setSelectedForum(selectedForumId || "");
   };
 
   // For main forum page - show button when not open
@@ -145,7 +157,9 @@ export default function CreatePost({ forums, selectedForumId, onPostCreated, for
       <div className="bg-card border border-border rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="text-lg font-semibold text-foreground">Create a Post</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            Create a Post
+          </h2>
           <button
             onClick={handleClose}
             className="p-1 hover:bg-accent rounded-lg transition-colors"
@@ -181,9 +195,7 @@ export default function CreatePost({ forums, selectedForumId, onPostCreated, for
 
           {/* Title */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Title
-            </label>
+            <label className="text-sm font-medium text-foreground">Title</label>
             <input
               type="text"
               value={title}
@@ -225,11 +237,16 @@ export default function CreatePost({ forums, selectedForumId, onPostCreated, for
             </button>
             <button
               type="submit"
-              disabled={!title.trim() || !description.trim() || !selectedForum || isSubmitting}
+              disabled={
+                !title.trim() ||
+                !description.trim() ||
+                !selectedForum ||
+                isSubmitting
+              }
               className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
-              {isSubmitting ? 'Posting...' : 'Post'}
+              {isSubmitting ? "Posting..." : "Post"}
             </button>
           </div>
         </form>

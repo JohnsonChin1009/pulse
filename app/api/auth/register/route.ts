@@ -65,9 +65,9 @@ export async function POST(request: NextRequest) {
       profilePictureUrls[Math.floor(Math.random() * profilePictureUrls.length)];
 
     // Use a transaction to ensure data consistency
-    const userResult = await db.transaction(async (tx) => {
+    const result = await db.transaction(async (tx) => {
       try {
-        // Insert the new user
+        // 1. Insert the new user
         const [newUser] = await tx
           .insert(users)
           .values({
@@ -89,46 +89,48 @@ export async function POST(request: NextRequest) {
             created_at: users.created_at,
           });
 
-        // Create a pet for the new user
-        const petNames = [
-          "Pulse Buddy",
-          "Heart Helper",
-          "Cardio Companion",
-          "Wellness Warrior",
-          "Health Hero",
-          "Fit Friend",
-          "Active Angel",
-          "Vitality Pal",
+        // 2. Generate a new pet
+        const characteristics = [
+          "Whimsical",
+          "Humorous",
+          "Charming",
+          "Tactical",
+          "Diabolical",
+          "Euphorical",
+          "Philosophical",
+          "Satanical",
+          "Tropical",
         ];
-        const randomPetName =
-          petNames[Math.floor(Math.random() * petNames.length)];
+        const type = ["Rock", "Triangle", "Toast"];
+
+        const chosenCharacteristics =
+          characteristics[Math.floor(Math.random() * characteristics.length)];
+        const chosenType = type[Math.floor(Math.random() * type.length)];
 
         const [newPet] = await tx
           .insert(pets)
           .values({
-            pet_name: randomPetName,
-            pet_level: 1,
+            pet_name: `${chosenCharacteristics} ${chosenType}`,
+            pet_type: chosenType,
             pet_happiness: 50,
-            pet_status: "happy",
+            pet_level: 1,
+            pet_status: "Newborn",
             user_id: newUser.id,
           })
-          .returning({
-            id: pets.id,
-            pet_name: pets.pet_name,
-            pet_level: pets.pet_level,
-            pet_happiness: pets.pet_happiness,
-            pet_status: pets.pet_status,
-          });
+          .returning();
 
-        // Create initial leaderboard entry
-        await tx.insert(leaderboards).values({
-          highest_level: 1,
-          highest_score_cumulative: 0,
-          hightest_most_achievement: 0,
-          user_id: newUser.id,
-        });
+        // 3. Create leaderboard record for user
+        const [newLeaderboard] = await tx
+          .insert(leaderboards)
+          .values({
+            highest_level: newPet.pet_level,
+            highest_score_cumulative: 0,
+            highest_most_achievement: 0,
+            user_id: newUser.id,
+          })
+          .returning();
 
-        return { newUser, newPet };
+        return { newUser, newPet, newLeaderboard };
       } catch (error) {
         console.error("Transaction failed during registration:", error);
         throw error;
@@ -138,7 +140,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: "User registered successfully and pet assigned!",
-        user: userResult,
+        user: result.newUser,
       },
       { status: 201 },
     );

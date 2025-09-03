@@ -21,9 +21,11 @@ interface ForumSidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
   onForumCreated?: () => void;
+  apiEndpoint?: string;
+  baseRoute?: string;
 }
 
-export default function ForumSidebar({ selectedForum, onForumSelect, forums, isOpen = true, onClose, onForumCreated }: ForumSidebarProps) {
+export default function ForumSidebar({ selectedForum, onForumSelect, forums, isOpen = true, onClose, onForumCreated, apiEndpoint, baseRoute = '/forum' }: ForumSidebarProps) {
   return (
     <>
       {/* Mobile overlay */}
@@ -62,7 +64,7 @@ export default function ForumSidebar({ selectedForum, onForumSelect, forums, isO
               </h3>
               <div className="space-y-1">
                 <Link
-                  href="/forum"
+                  href={baseRoute}
                   onClick={onClose}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
                     selectedForum === 'all'
@@ -74,7 +76,7 @@ export default function ForumSidebar({ selectedForum, onForumSelect, forums, isO
                   Home
                 </Link>
                 <Link 
-                  href="/forum?filter=popular"
+                  href={`${baseRoute}?filter=popular`}
                   onClick={onClose}
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-foreground hover:bg-accent transition-colors"
                 >

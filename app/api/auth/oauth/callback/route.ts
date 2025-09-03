@@ -163,24 +163,29 @@ export async function GET(request: Request) {
           .returning();
 
         // Create a pet for the new OAuth user
-        const petNames = [
-          "Pulse Buddy",
-          "Heart Helper",
-          "Cardio Companion",
-          "Wellness Warrior",
-          "Health Hero",
-          "Fit Friend",
-          "Active Angel",
-          "Vitality Pal",
+        const characteristics = [
+          "Whimsical",
+          "Humorous",
+          "Charming",
+          "Tactical",
+          "Diabolical",
+          "Euphorical",
+          "Philosophical",
+          "Satanical",
+          "Tropical",
         ];
-        const randomPetName =
-          petNames[Math.floor(Math.random() * petNames.length)];
+        const type = ["Rock", "Triangle", "Toast"];
+
+        const chosenCharacteristics =
+          characteristics[Math.floor(Math.random() * characteristics.length)];
+        const chosenType = type[Math.floor(Math.random() * type.length)];
 
         await tx.insert(pets).values({
-          pet_name: randomPetName,
+          pet_name: `${chosenCharacteristics} ${chosenType}`,
+          pet_type: chosenType,
           pet_level: 1,
           pet_happiness: 50,
-          pet_status: "happy",
+          pet_status: "Newborn",
           user_id: created.id,
         });
 
@@ -188,7 +193,7 @@ export async function GET(request: Request) {
         await tx.insert(leaderboards).values({
           highest_level: 1,
           highest_score_cumulative: 0,
-          hightest_most_achievement: 0,
+          highest_most_achievement: 0,
           user_id: created.id,
         });
 
@@ -222,10 +227,9 @@ export async function GET(request: Request) {
     .limit(1);
 
   const userRole = u?.role ?? "user";
-  console.log("User Role being passed", userRole);
 
   // Issuing JWT to pulse app
-const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
+  const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
   const jwt = await new jose.SignJWT({ sub: userId, email, role: userRole })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()

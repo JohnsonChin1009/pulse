@@ -54,17 +54,17 @@ import { PractitionerReviewDialog } from "./practitionerPreviewDialog";
 export type UserStatus = "active" | "inactive" | "suspended";
 
 export interface Application {
-  id: number,
-  userId: string,
-  username: string,
-  gender: string,
-  email: string,
-  joined_date: string,
-  submission_date: string,
-  license_url: string,
-  status: string,
-  updated_at: string,
-  profile_url: string
+  id: number;
+  userId: string;
+  username: string;
+  gender: string;
+  email: string;
+  joined_date: string;
+  submission_date: string;
+  license_url: string;
+  status: string;
+  updated_at: string;
+  profile_url: string;
 }
 
 export interface User {
@@ -114,7 +114,6 @@ const formatDateTime = (dateStr: string | null) => {
   return `${day}/${month}/${year} ${hours}:${minutes}`;
 };
 
-
 export default function UsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -129,16 +128,17 @@ export default function UsersPage() {
   const [selectedPractitioner, setSelectedPractitioner] =
     useState<Practitioner | null>(null);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(
-    null
+    null,
   );
 
   const [userList, setUserList] = useState<User[] | null>(null);
 
   const [practitioners, setPractitioners] = useState<Practitioner[]>([]);
 
-  const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
 
-  const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [selectedApplication, setSelectedApplication] =
+    useState<Application | null>(null);
 
   const { user: sessionUser } = useAuth();
 
@@ -146,19 +146,22 @@ export default function UsersPage() {
 
   const [selectedUserAdmin, setSelectedUserAdmin] = useState<User | null>(null);
 
-  const [adminAction, setAdminAction] = useState<"upgrade" | "degrade" | null>(null);
+  const [adminAction, setAdminAction] = useState<"upgrade" | "degrade" | null>(
+    null,
+  );
 
   const handleUpgrade = async (userId: string) => {
     try {
       await fetch(`/api/admin/users/${userId}/upgrade`, {
         method: "POST",
       });
-      
-      setUserList((prev) =>
-        prev?.map((user) =>
-          user.id === userId ? { ...user, role: "admin" } : user
-        ) ?? null
-    );
+
+      setUserList(
+        (prev) =>
+          prev?.map((user) =>
+            user.id === userId ? { ...user, role: "admin" } : user,
+          ) ?? null,
+      );
       toast.success("User upgraded to admin!");
     } catch (error) {
       toast.error("Failed to upgrade user.");
@@ -171,10 +174,11 @@ export default function UsersPage() {
       await fetch(`/api/admin/users/${userId}/degrade`, {
         method: "POST",
       });
-      setUserList((prev) =>
-        prev?.map((user) =>
-          user.id === userId ? { ...user, role: "user" } : user
-        ) ?? null
+      setUserList(
+        (prev) =>
+          prev?.map((user) =>
+            user.id === userId ? { ...user, role: "user" } : user,
+          ) ?? null,
       );
       toast.success("User downgraded to user!");
     } catch (error) {
@@ -183,11 +187,10 @@ export default function UsersPage() {
     }
   };
 
-
   const handlePractitionerStatus = async (
     practitionerId: number,
     userId: string,
-    action: "approve" | "reject"
+    action: "approve" | "reject",
   ) => {
     try {
       const res = await fetch(`/api/admin/users/practitioner/status`, {
@@ -207,8 +210,8 @@ export default function UsersPage() {
         prev.map((p) =>
           p.id === practitionerId
             ? { ...p, status: action === "approve" ? "verified" : "rejected" }
-            : p
-        )
+            : p,
+        ),
       );
     } catch (error) {
       console.error(error);
@@ -234,7 +237,7 @@ export default function UsersPage() {
           avatar: row.user.profile_picture_url || null,
           submissionDate: formatDateTime(row.practitioner.submitted_at),
           joinDate: formatDateTime(row.user.created_at),
-          user_id: row.user.id
+          user_id: row.user.id,
         }));
 
         setPractitioners(transformed);
@@ -284,14 +287,13 @@ export default function UsersPage() {
             u.suspension_status === true
               ? "suspended"
               : u.online_status === true
-              ? "active"
-              : "inactive",
+                ? "active"
+                : "inactive",
         }));
 
         setUserList(normalized);
 
         console.log(normalized);
-
       } catch (error) {
         console.error("Error fetching user list:", error);
       }
@@ -347,11 +349,11 @@ export default function UsersPage() {
                   status: updatedUser.suspension_status
                     ? "suspended"
                     : updatedUser.online_status
-                    ? "active"
-                    : "inactive",
+                      ? "active"
+                      : "inactive",
                 }
-              : u
-          ) || []
+              : u,
+          ) || [],
       );
     } catch (err) {
       console.error(err);
@@ -434,7 +436,6 @@ export default function UsersPage() {
     }
   };
 
-
   const UserCard = ({
     user,
     handleStatusChange,
@@ -459,7 +460,7 @@ export default function UsersPage() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-serif font-semibold text-foreground">
+              <h3 className="font-main font-semibold text-foreground">
                 {user.name ?? "Unknown User"}
               </h3>
               <p className="text-sm text-muted-foreground">
@@ -519,7 +520,9 @@ export default function UsersPage() {
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedUserAdmin(user);
-                    setAdminAction(user.role === "admin" ? "degrade" : "upgrade");
+                    setAdminAction(
+                      user.role === "admin" ? "degrade" : "upgrade",
+                    );
                     setOpenAdminDialog(true);
                   }}
                   className="flex items-center"
@@ -529,7 +532,9 @@ export default function UsersPage() {
                   ) : (
                     <UserPlus className="w-4 h-4 mr-2" />
                   )}
-                  {user.role === "admin" ? "Degrade to User" : "Upgrade to Admin"}
+                  {user.role === "admin"
+                    ? "Degrade to User"
+                    : "Upgrade to Admin"}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>
@@ -567,7 +572,7 @@ export default function UsersPage() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-serif font-semibold text-foreground">
+              <h3 className="font-main font-semibold text-foreground">
                 {practitioner.name}
               </h3>
               <p className="text-sm text-muted-foreground">
@@ -590,7 +595,9 @@ export default function UsersPage() {
               <DropdownMenuItem
                 onClick={async () => {
                   try {
-                    const res = await fetch(`/api/admin/users/practitioner/review-dialog/${practitioner.id}`); 
+                    const res = await fetch(
+                      `/api/admin/users/practitioner/review-dialog/${practitioner.id}`,
+                    );
                     if (!res.ok) throw new Error("Failed to fetch application");
 
                     const app: Application = await res.json();
@@ -979,21 +986,28 @@ export default function UsersPage() {
               <Button
                 className="w-full sm:w-25 rounded-xl"
                 variant={actionType === "reject" ? "destructive" : "default"}
-                  onClick={() => {
-                    if (actionType && selectedApplication) {
-                      handlePractitionerStatus(selectedApplication.id, selectedApplication.userId, actionType);
-                    } else if (actionType && selectedPractitioner) {
-                      handlePractitionerStatus(selectedPractitioner.id, selectedPractitioner.user_id, actionType);
-                    }
-                  }}
-                >
+                onClick={() => {
+                  if (actionType && selectedApplication) {
+                    handlePractitionerStatus(
+                      selectedApplication.id,
+                      selectedApplication.userId,
+                      actionType,
+                    );
+                  } else if (actionType && selectedPractitioner) {
+                    handlePractitionerStatus(
+                      selectedPractitioner.id,
+                      selectedPractitioner.user_id,
+                      actionType,
+                    );
+                  }
+                }}
+              >
                 {actionType === "approve" ? "Approve" : "Reject"}
               </Button>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
 
       <AlertDialog open={openAdminDialog} onOpenChange={setOpenAdminDialog}>
         <AlertDialogContent>
@@ -1022,8 +1036,10 @@ export default function UsersPage() {
                 onClick={() => {
                   if (!selectedUserAdmin) return;
 
-                  if (adminAction === "upgrade") handleUpgrade(selectedUserAdmin.id);
-                  else if (adminAction === "degrade") handleDegrade(selectedUserAdmin.id);
+                  if (adminAction === "upgrade")
+                    handleUpgrade(selectedUserAdmin.id);
+                  else if (adminAction === "degrade")
+                    handleDegrade(selectedUserAdmin.id);
 
                   setOpenAdminDialog(false);
                   setAdminAction(null);
@@ -1035,7 +1051,6 @@ export default function UsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
 
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
@@ -1080,21 +1095,20 @@ export default function UsersPage() {
       </AlertDialog>
 
       <PractitionerReviewDialog
-          open={reviewDialogOpen}
-          onOpenChange={setReviewDialogOpen}
-          application={selectedApplication}
-          onApprove={() => {
-            if (!selectedApplication) return;
-              setActionType("approve");
-              setOpenPractitionerDialog(true); 
-          }}
-          onReject={() => {
-            if (!selectedApplication) return;
-            setActionType("reject");
-            setOpenPractitionerDialog(true);
-          }}
+        open={reviewDialogOpen}
+        onOpenChange={setReviewDialogOpen}
+        application={selectedApplication}
+        onApprove={() => {
+          if (!selectedApplication) return;
+          setActionType("approve");
+          setOpenPractitionerDialog(true);
+        }}
+        onReject={() => {
+          if (!selectedApplication) return;
+          setActionType("reject");
+          setOpenPractitionerDialog(true);
+        }}
       />
-
     </div>
   );
 }

@@ -4,10 +4,11 @@ import { forumRepository } from "@/lib/db/repositories/forumRepository";
 // GET /api/posts/[id] - Get a specific post
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idString } = await params;
+    const id = parseInt(idString);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid post ID" },
@@ -36,10 +37,11 @@ export async function GET(
 // PUT /api/posts/[id] - Update a post
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idString } = await params;
+    const id = parseInt(idString);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid post ID" },
@@ -70,10 +72,11 @@ export async function PUT(
 // DELETE /api/posts/[id] - Delete a post
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idString } = await params;
+    const id = parseInt(idString);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid post ID" },

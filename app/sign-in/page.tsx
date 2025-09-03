@@ -92,14 +92,22 @@ export default function SignInPage() {
     }
     setLoading(true);
     try {
-      // TODO: complete the login function and redirect to necessary page
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       if (res.ok) {
-        router.push("/dashboard");
+        const data = await res.json();
+        const role = data.user.role;
+
+        if (role === "admin") {
+          router.push("/admin");
+        } else if (role === "practitioner") {
+          router.push("/practitioner");
+        } else if (role === "user") {
+          router.push("/user");
+        }
       } else {
         const data = await res.json().catch(() => ({}));
         toast.error(data.error || "Invalid email or password.");

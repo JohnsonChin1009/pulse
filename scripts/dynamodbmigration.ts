@@ -66,7 +66,7 @@ async function createChatMessagesTable() {
     console.log("ChatMessages table created:", response.TableDescription?.TableName);
   } catch (err: any) {
     if (err.name === "ResourceInUseException") {
-      console.log(" hatMessages table already exists, not recreating.");
+      console.log("ChatMessages table already exists, not recreating.");
     } else {
       console.error("Error creating ChatMessages table:", err);
     }

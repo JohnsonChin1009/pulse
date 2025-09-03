@@ -26,29 +26,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function fetchUser() {
-        try {
-          const res = await fetch("/api/auth/me", { credentials: "include" });
-          const contentType = res.headers.get("content-type");
-          if (res.ok && contentType?.includes("application/json")) {
-            const data = await res.json();
-            setUser(data);
-          } else {
-            setUser(null);
-          }
-        } catch (err) {
-          console.error("Auth fetch error:", err);
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        const contentType = res.headers.get("content-type");
+        if (res.ok && contentType?.includes("application/json")) {
+          const data = await res.json();
+          setUser(data);
+        } else {
           setUser(null);
         }
+      } catch (err) {
+        console.error("Auth fetch error:", err);
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
+    }
 
     fetchUser();
   }, []);
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", { 
-        method: "POST", 
-        credentials: "include" 
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
       });
       setUser(null);
       window.location.href = "/sign-in";
@@ -71,3 +73,4 @@ export function useAuth() {
   }
   return context;
 }
+

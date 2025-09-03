@@ -4,10 +4,11 @@ import { forumRepository } from "@/lib/db/repositories/forumRepository";
 // POST /api/comments/[id]/vote - Vote on a comment
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid comment ID" },

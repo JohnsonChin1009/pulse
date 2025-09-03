@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import Ably from "ably";
 
-export const runtime = "nodejs";          
-export const revalidate = 0;               
+export const runtime = "nodejs";
+export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
@@ -12,10 +12,11 @@ export async function GET(req: Request) {
   const clientId = searchParams.get("clientId") ?? undefined;
 
   const tokenRequest = await rest.auth.createTokenRequest({
-    clientId, 
+    clientId,
   });
 
   console.log(clientId);
 
+  console.log(clientId);
   return NextResponse.json(tokenRequest);
 }

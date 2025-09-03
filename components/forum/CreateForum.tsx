@@ -1,47 +1,50 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { forumAPI } from '@/lib/hooks/useForum';
-import { Plus, X, Send } from 'lucide-react';
+import { useState } from "react";
+import { forumAPI } from "@/lib/hooks/useForum";
+import { useAuth } from "@/contexts/AuthContext";
+import { Plus, X, Send } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface CreateForumProps {
   onForumCreated?: () => void;
 }
 
 export default function CreateForum({ onForumCreated }: CreateForumProps) {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [topic, setTopic] = useState('');
-  const [description, setDescription] = useState('');
+  const [topic, setTopic] = useState("");
+  const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim() || isSubmitting) return;
 
+    if (!user?.id) {
+      alert("You must be logged in to create a forum");
+      return;
+    }
+
     setIsSubmitting(true);
-    
+
     try {
-      // For now, we'll use a placeholder user ID
-      // In a real app, you'd get this from authentication context
-      //placeholder-user-id for now
-      const userId = '46e7628d-a464-43f6-a6ea-1163f7bae42b'; // TODO: Get from auth context
-      
       await forumAPI.createForum({
         topic: topic.trim(),
         description: description.trim() || undefined,
-        user_id: userId,
+        user_id: user.id,
       });
-      
+
       // Reset form
-      setTopic('');
-      setDescription('');
+      setTopic("");
+      setDescription("");
       setIsOpen(false);
-      
+
       // Notify parent to refresh
       onForumCreated?.();
     } catch (error) {
-      console.error('Error creating forum:', error);
-      // TODO: Show error toast
+      console.error("Error creating forum:", error);
+      toast.error("Error creating forum. Please try again!");
     } finally {
       setIsSubmitting(false);
     }
@@ -49,8 +52,8 @@ export default function CreateForum({ onForumCreated }: CreateForumProps) {
 
   const handleClose = () => {
     setIsOpen(false);
-    setTopic('');
-    setDescription('');
+    setTopic("");
+    setDescription("");
   };
 
   if (!isOpen) {
@@ -70,7 +73,9 @@ export default function CreateForum({ onForumCreated }: CreateForumProps) {
       <div className="bg-card border border-border rounded-lg w-full max-w-md">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="text-lg font-semibold text-foreground">Create a Community</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            Create a Community
+          </h2>
           <button
             onClick={handleClose}
             className="p-1 hover:bg-accent rounded-lg transition-colors"
@@ -101,7 +106,8 @@ export default function CreateForum({ onForumCreated }: CreateForumProps) {
               />
             </div>
             <div className="text-xs text-muted-foreground">
-              Community names including capitalization cannot be changed. {topic.length}/50
+              Community names including capitalization cannot be changed.{" "}
+              {topic.length}/50
             </div>
           </div>
 
@@ -139,7 +145,7 @@ export default function CreateForum({ onForumCreated }: CreateForumProps) {
               className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-4 h-4" />
-              {isSubmitting ? 'Creating...' : 'Create Community'}
+              {isSubmitting ? "Creating..." : "Create Community"}
             </button>
           </div>
         </form>

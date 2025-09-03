@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Heart, Play, Sparkles } from "lucide-react";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
-import Link from "next/link";
 
 export function HeroSection() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -179,11 +178,13 @@ export function HeroSection() {
             </DialogTitle>
           </DialogHeader>
           <div className="aspect-video w-full bg-gray-100 rounded-lg overflow-hidden">
-            <video className="w-full h-full object-cover" controls>
-              <source
-                src="https://www.youtube.com/watch?v=1Di8X2vRNRE"
-                type="video/mp4"
-              />
+            <iframe
+              src="https://www.youtube.com/embed/1Di8X2vRNRE?si=IYkPD18JGu6ORuu6?autoplay=1"
+              title="ThePrimeAgen"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full object-cover"
+            >
               <p className="font-montserrat text-gray-600 p-8 text-center">
                 Your browser doesn&apos;t support video playback.
                 <br />
@@ -191,7 +192,7 @@ export function HeroSection() {
                   Please try a different browser or contact support.
                 </span>
               </p>
-            </video>
+            </iframe>
           </div>
           <div className="text-center pt-4">
             <p className="font-montserrat text-gray-600 text-sm">

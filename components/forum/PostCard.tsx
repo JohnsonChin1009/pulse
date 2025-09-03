@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { forumAPI } from '@/lib/hooks/useForum';
+import { useState, useEffect } from "react";
+import { forumAPI } from "@/lib/hooks/useForum";
 import {
   ArrowUp,
   ArrowDown,
@@ -9,8 +9,8 @@ import {
   Share,
   Bookmark,
   MoreHorizontal,
-} from 'lucide-react';
-import Link from 'next/link';
+} from "lucide-react";
+import Link from "next/link";
 
 // Updated interfaces to match the new data structure
 interface PostCardProps {
@@ -41,24 +41,35 @@ interface PostCardProps {
     color: string;
     memberCount: number;
   };
+  baseRoute?: string;
 }
 
-export default function PostCard({ post, user, forum }: PostCardProps) {
-  const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
+export default function PostCard({
+  post,
+  user,
+  forum,
+  baseRoute,
+}: PostCardProps) {
+  const [userVote, setUserVote] = useState<"up" | "down" | null>(null);
   const [localUpvotes, setLocalUpvotes] = useState(post.upvotes);
   const [localDownvotes, setLocalDownvotes] = useState(post.downvotes);
   const [isVoting, setIsVoting] = useState(false);
 
-  const handleVote = async (voteType: 'up' | 'down') => {
+  // TEST: Logging the base router
+  useEffect(() => {
+    console.log("Base route received from card: ", baseRoute);
+  }, [baseRoute]);
+
+  const handleVote = async (voteType: "up" | "down") => {
     if (isVoting) return;
-    
+
     setIsVoting(true);
-    
+
     try {
       if (userVote === voteType) {
         // Remove vote - for now just update locally
         // In a real app, you'd need a separate API endpoint to remove votes
-        if (voteType === 'up') {
+        if (voteType === "up") {
           setLocalUpvotes((prev) => prev - 1);
         } else {
           setLocalDownvotes((prev) => prev - 1);
@@ -66,17 +77,17 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
         setUserVote(null);
       } else {
         // Add new vote, remove old if exists
-        if (userVote === 'up') {
+        if (userVote === "up") {
           setLocalUpvotes((prev) => prev - 1);
-        } else if (userVote === 'down') {
+        } else if (userVote === "down") {
           setLocalDownvotes((prev) => prev - 1);
         }
 
         // Call the API to vote
-        const voteAction = voteType === 'up' ? 'upvote' : 'downvote';
+        const voteAction = voteType === "up" ? "upvote" : "downvote";
         await forumAPI.votePost(parseInt(post.id), voteAction);
 
-        if (voteType === 'up') {
+        if (voteType === "up") {
           setLocalUpvotes((prev) => prev + 1);
         } else {
           setLocalDownvotes((prev) => prev + 1);
@@ -84,7 +95,7 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
         setUserVote(voteType);
       }
     } catch (error) {
-      console.error('Error voting:', error);
+      console.error("Error voting:", error);
       // Revert optimistic update on error
       // You might want to show a toast notification here
     } finally {
@@ -96,10 +107,10 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
     const now = new Date();
     const postDate = new Date(dateString);
     const diffInHours = Math.floor(
-      (now.getTime() - postDate.getTime()) / (1000 * 60 * 60)
+      (now.getTime() - postDate.getTime()) / (1000 * 60 * 60),
     );
 
-    if (diffInHours < 1) return 'now';
+    if (diffInHours < 1) return "now";
     if (diffInHours < 24) return `${diffInHours}h`;
     const diffInDays = Math.floor(diffInHours / 24);
     if (diffInDays < 7) return `${diffInDays}d`;
@@ -110,35 +121,34 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
   const netScore = localUpvotes - localDownvotes;
 
   // Use the username from the post data if available, otherwise fall back to user prop
-  const displayUsername = post.username || user?.username || 'Unknown';
-  const displayAvatar = post.userAvatar || user?.avatar;
-  const displayForumName = post.forumName || forum?.name || 'Unknown Forum';
+  const displayUsername = post.username || user?.username || "Unknown";
+  const displayForumName = post.forumName || forum?.name || "Unknown Forum";
 
   return (
-    <div className='bg-card border-b border-border sm:border sm:rounded-lg hover:bg-accent/5 transition-colors'>
+    <div className="bg-card border-b border-border sm:border sm:rounded-lg hover:bg-accent/5 transition-colors">
       {/* Mobile Layout - Reddit Style */}
-      <div className='block sm:hidden'>
-        <div className='flex p-2'>
+      <div className="block sm:hidden">
+        <div className="flex p-2">
           {/* Left: Vote Section */}
-          <div className='flex flex-col items-center justify-start mr-2 pt-1'>
+          <div className="flex flex-col items-center justify-start mr-2 pt-1">
             <button
-              onClick={() => handleVote('up')}
+              onClick={() => handleVote("up")}
               disabled={isVoting}
               className={`p-1 rounded transition-colors ${
-                userVote === 'up'
-                  ? 'text-orange-500'
-                  : 'text-muted-foreground hover:text-orange-500'
-              } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                userVote === "up"
+                  ? "text-orange-500"
+                  : "text-muted-foreground hover:text-orange-500"
+              } ${isVoting ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <ArrowUp className='w-4 h-4' />
+              <ArrowUp className="w-4 h-4" />
             </button>
             <span
               className={`text-xs font-medium ${
                 netScore > 0
-                  ? 'text-orange-500'
+                  ? "text-orange-500"
                   : netScore < 0
-                  ? 'text-blue-500'
-                  : 'text-muted-foreground'
+                    ? "text-blue-500"
+                    : "text-muted-foreground"
               }`}
             >
               {Math.abs(netScore) > 999
@@ -146,70 +156,70 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
                 : Math.abs(netScore)}
             </span>
             <button
-              onClick={() => handleVote('down')}
+              onClick={() => handleVote("down")}
               disabled={isVoting}
               className={`p-1 rounded transition-colors ${
-                userVote === 'down'
-                  ? 'text-blue-500'
-                  : 'text-muted-foreground hover:text-blue-500'
-              } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                userVote === "down"
+                  ? "text-blue-500"
+                  : "text-muted-foreground hover:text-blue-500"
+              } ${isVoting ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              <ArrowDown className='w-4 h-4' />
+              <ArrowDown className="w-4 h-4" />
             </button>
           </div>
 
           {/* Right: Content */}
-          <div className='flex-1 min-w-0'>
+          <div className="flex-1 min-w-0">
             {/* Post Header */}
-            <div className='flex items-center text-xs text-muted-foreground mb-1 overflow-hidden'>
-              <div className='flex items-center gap-1 flex-shrink-0'>
-                <div className={`w-2 h-2 rounded-full ${forum?.color || 'bg-gray-500'}`} />
+            <div className="flex items-center text-xs text-muted-foreground mb-1 overflow-hidden">
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <div
+                  className={`w-2 h-2 rounded-full ${forum?.color || "bg-gray-500"}`}
+                />
                 <Link
-                  href={`/forum/${post.forumId}`}
-                  className='font-medium hover:text-foreground !min-h-0'
+                  href={`${baseRoute}/${post.forumId}`}
+                  className="font-medium hover:text-foreground !min-h-0"
                 >
                   r/{displayForumName}
                 </Link>
                 <span>•</span>
               </div>
-              <div className='flex items-center gap-1 min-w-0 flex-1'>
-                <span className='truncate'>
-                  u/{displayUsername}
-                </span>
-                <span className='flex-shrink-0'>•</span>
-                <span className='flex-shrink-0'>
+              <div className="flex items-center gap-1 min-w-0 flex-1">
+                <span className="truncate">u/{displayUsername}</span>
+                <span className="flex-shrink-0">•</span>
+                <span className="flex-shrink-0">
                   {formatTimeAgo(post.datePost)}
                 </span>
               </div>
             </div>
 
             {/* Post Title */}
-            <Link href={`/forum/post/${post.id}`}>
-              <h2 className='text-sm font-medium text-foreground hover:text-primary transition-colors mb-1 line-clamp-2'>
+            <Link href={`${baseRoute}/post/${post.id}`}>
+              <h2 className="text-sm font-medium text-foreground hover:text-primary transition-colors mb-1 line-clamp-2">
                 {post.title}
               </h2>
             </Link>
 
             {/* Post Description */}
-            <p className='text-xs text-muted-foreground mb-2 line-clamp-2'>
+            <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
               {post.description}
             </p>
 
             {/* Bottom Action Bar */}
-            <div className='flex items-center gap-4 text-xs text-muted-foreground'>
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
               <Link
-                href={`/forum/post/${post.id}`}
-                className='flex items-center gap-1 hover:text-foreground transition-colors'
+                href={`${baseRoute}/post/${post.id}`}
+                className="flex items-center gap-1 hover:text-foreground transition-colors"
               >
-                <MessageCircle className='w-3 h-3' />
+                <MessageCircle className="w-3 h-3" />
                 <span>{post.commentCount}</span>
               </Link>
-              <button className='flex items-center gap-1 hover:text-foreground transition-colors'>
-                <Share className='w-3 h-3' />
+              <button className="flex items-center gap-1 hover:text-foreground transition-colors">
+                <Share className="w-3 h-3" />
                 <span>Share</span>
               </button>
-              <button className='hover:text-foreground transition-colors ml-auto'>
-                <MoreHorizontal className='w-3 h-3' />
+              <button className="hover:text-foreground transition-colors ml-auto">
+                <MoreHorizontal className="w-3 h-3" />
               </button>
             </div>
           </div>
@@ -217,52 +227,54 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
       </div>
 
       {/* Desktop Layout - Original */}
-      <div className='hidden sm:flex'>
+      <div className="hidden sm:flex">
         {/* Vote Section */}
-        <div className='flex flex-col items-center p-3 bg-muted/30 rounded-l-lg'>
+        <div className="flex flex-col items-center p-3 bg-muted/30 rounded-l-lg">
           <button
-            onClick={() => handleVote('up')}
+            onClick={() => handleVote("up")}
             disabled={isVoting}
             className={`p-1 rounded transition-colors ${
-              userVote === 'up'
-                ? 'text-orange-500 bg-orange-100 dark:bg-orange-900/30'
-                : 'text-muted-foreground hover:text-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/30'
-            } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              userVote === "up"
+                ? "text-orange-500 bg-orange-100 dark:bg-orange-900/30"
+                : "text-muted-foreground hover:text-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/30"
+            } ${isVoting ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            <ArrowUp className='w-5 h-5' />
+            <ArrowUp className="w-5 h-5" />
           </button>
           <span
             className={`text-sm font-semibold py-1 ${
               netScore > 0
-                ? 'text-orange-500'
+                ? "text-orange-500"
                 : netScore < 0
-                ? 'text-blue-500'
-                : 'text-muted-foreground'
+                  ? "text-blue-500"
+                  : "text-muted-foreground"
             }`}
           >
             {netScore}
           </span>
           <button
-            onClick={() => handleVote('down')}
+            onClick={() => handleVote("down")}
             disabled={isVoting}
             className={`p-1 rounded transition-colors ${
-              userVote === 'down'
-                ? 'text-blue-500 bg-blue-100 dark:bg-blue-900/30'
-                : 'text-muted-foreground hover:text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30'
-            } ${isVoting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              userVote === "down"
+                ? "text-blue-500 bg-blue-100 dark:bg-blue-900/30"
+                : "text-muted-foreground hover:text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+            } ${isVoting ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            <ArrowDown className='w-5 h-5' />
+            <ArrowDown className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Section */}
-        <div className='flex-1 p-4'>
+        <div className="flex-1 p-4">
           {/* Post Header */}
-          <div className='flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-2'>
-            <div className={`w-3 h-3 rounded-full ${forum?.color || 'bg-gray-500'}`} />
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-2">
+            <div
+              className={`w-3 h-3 rounded-full ${forum?.color || "bg-gray-500"}`}
+            />
             <Link
               href={`/forum/${post.forumId}`}
-              className='font-medium hover:text-foreground transition-colors'
+              className="font-medium hover:text-foreground transition-colors"
             >
               r/{displayForumName}
             </Link>
@@ -270,7 +282,7 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
             <span>Posted by</span>
             <Link
               href={`/user/${displayUsername}`}
-              className='hover:text-foreground transition-colors'
+              className="hover:text-foreground transition-colors"
             >
               u/{displayUsername}
             </Link>
@@ -279,36 +291,36 @@ export default function PostCard({ post, user, forum }: PostCardProps) {
           </div>
 
           {/* Post Title */}
-          <Link href={`/forum/post/${post.id}`}>
-            <h2 className='text-lg font-semibold text-foreground hover:text-primary transition-colors mb-2 cursor-pointer'>
+          <Link href={`${baseRoute}/post/${post.id}`}>
+            <h2 className="text-lg font-semibold text-foreground hover:text-primary transition-colors mb-2 cursor-pointer">
               {post.title}
             </h2>
           </Link>
 
           {/* Post Description */}
-          <p className='text-foreground mb-4 line-clamp-3'>
+          <p className="text-foreground mb-4 line-clamp-3">
             {post.description}
           </p>
 
           {/* Post Actions */}
-          <div className='flex flex-wrap items-center gap-4 text-sm text-muted-foreground'>
+          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <Link
               href={`/forum/post/${post.id}`}
-              className='flex items-center gap-1 hover:text-foreground transition-colors'
+              className="flex items-center gap-1 hover:text-foreground transition-colors"
             >
-              <MessageCircle className='w-4 h-4' />
+              <MessageCircle className="w-4 h-4" />
               <span>{post.commentCount} comments</span>
             </Link>
-            <button className='flex items-center gap-1 hover:text-foreground transition-colors'>
-              <Share className='w-4 h-4' />
+            <button className="flex items-center gap-1 hover:text-foreground transition-colors">
+              <Share className="w-4 h-4" />
               <span>Share</span>
             </button>
-            <button className='flex items-center gap-1 hover:text-foreground transition-colors'>
-              <Bookmark className='w-4 h-4' />
+            <button className="flex items-center gap-1 hover:text-foreground transition-colors">
+              <Bookmark className="w-4 h-4" />
               <span>Save</span>
             </button>
-            <button className='flex items-center gap-1 hover:text-foreground transition-colors ml-auto'>
-              <MoreHorizontal className='w-4 h-4' />
+            <button className="flex items-center gap-1 hover:text-foreground transition-colors ml-auto">
+              <MoreHorizontal className="w-4 h-4" />
             </button>
           </div>
         </div>

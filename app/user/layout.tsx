@@ -1,4 +1,5 @@
 import NavigationBar from "@/components/custom/NavigationBar";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export default function UserLayout({
   children,
@@ -9,11 +10,11 @@ export default function UserLayout({
     <div className="min-h-screen bg-gray-50">
       {/* Main content with bottom padding for navigation */}
       <main className="pb-20">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </main>
-      
+
       {/* Bottom Navigation */}
-      <NavigationBar />
+      <NavigationBar role={"user"} />
     </div>
   );
 }

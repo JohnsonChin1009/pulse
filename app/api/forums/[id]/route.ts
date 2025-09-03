@@ -4,10 +4,11 @@ import { forumRepository } from "@/lib/db/repositories/forumRepository";
 // GET /api/forums/[id] - Get a specific forum
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idString } = await params;
+    const id = parseInt(idString);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid forum ID" },
@@ -36,10 +37,11 @@ export async function GET(
 // PUT /api/forums/[id] - Update a forum
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idString } = await params;
+    const id = parseInt(idString);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid forum ID" },
@@ -70,10 +72,11 @@ export async function PUT(
 // DELETE /api/forums/[id] - Delete a forum
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: idString } = await params;
+    const id = parseInt(idString);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid forum ID" },

@@ -4,10 +4,11 @@ import { forumRepository } from "@/lib/db/repositories/forumRepository";
 // GET /api/comments/[id] - Get a specific comment
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid comment ID" },
@@ -36,10 +37,11 @@ export async function GET(
 // PUT /api/comments/[id] - Update a comment
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid comment ID" },
@@ -70,10 +72,11 @@ export async function PUT(
 // DELETE /api/comments/[id] - Delete a comment
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = parseInt(params.id);
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
     if (isNaN(id)) {
       return NextResponse.json(
         { error: "Invalid comment ID" },

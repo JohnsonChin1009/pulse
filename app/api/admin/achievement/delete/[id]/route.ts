@@ -15,9 +15,10 @@ const s3 = new S3Client({
 
 const BUCKET = process.env.S3_BUCKET_NAME || "";
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const achievementId = parseInt(params.id);
+    const { id } = await params;
+    const achievementId = parseInt(id);
     if (isNaN(achievementId)) {
       return NextResponse.json({ error: "Invalid achievement ID" }, { status: 400 });
     }

@@ -2,34 +2,50 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Trophy, MessageSquare, User } from "lucide-react";
+import { Home, Trophy, MessageSquare, User, Newspaper } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function NavigationBar() {
+interface NavigationBarProps {
+  role: "user" | "practitioner";
+}
+
+export default function NavigationBar({ role }: NavigationBarProps) {
   const pathname = usePathname();
 
-  const navItems = [
-    {
-      href: "/user",
-      icon: Home,
-      active: pathname === "/user",
-    },
-    {
-      href: "/user/leaderboard",
-      icon: Trophy,
-      active: pathname?.startsWith("/user/leaderboard"),
-    },
-    {
-      href: "/user/forum",
-      icon: MessageSquare,
-      active: pathname?.startsWith("/user/forum"),
-    },
-    {
-      href: "/user/profile",
-      icon: User,
-      active: pathname?.startsWith("/user/profile"),
-    },
-  ];
+  // Dynamic navigation items based on role
+  const getNavItems = () => {
+    const baseRoute = `/${role}`;
+    
+    return [
+      {
+        href: baseRoute,
+        icon: Home,
+        active: pathname === baseRoute,
+      },
+      {
+        href: `${baseRoute}/leaderboard`,
+        icon: Trophy,
+        active: pathname?.startsWith(`${baseRoute}/leaderboard`),
+      },
+      {
+        href: `${baseRoute}/forum`,
+        icon: Newspaper,
+        active: pathname?.startsWith(`${baseRoute}/forum`),
+      },
+      {
+        href: `${baseRoute}/chat`,
+        icon: MessageSquare,
+        active: pathname?.startsWith(`${baseRoute}/chat`),
+      },
+      {
+        href: `${baseRoute}/profile`,
+        icon: User,
+        active: pathname?.startsWith(`${baseRoute}/profile`),
+      },
+    ];
+  };
+
+  const navItems = getNavItems();
 
   return (
     <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-200 rounded-t-2xl z-50 shadow-lg">

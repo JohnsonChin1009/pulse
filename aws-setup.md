@@ -11,10 +11,3 @@
 ```bash
 aws sts get-caller-identity
 ```
-
-## Setting up RDS
-
-1. Navigate to Aurora and RDS
-2. Create Database
-3. Select PostGreSQL
-   TBC

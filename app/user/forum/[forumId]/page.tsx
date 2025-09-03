@@ -225,6 +225,8 @@ export default function UserForumDetailPage() {
             };
             fetchForums();
           }}
+          apiEndpoint="/api/user/forums"
+          baseRoute="/user/forum"
         />
         
         {/* Mobile Forum Header */}
@@ -268,7 +270,7 @@ export default function UserForumDetailPage() {
         </div>
 
         <div className="bg-background">
-          <PostList posts={sortedPosts} />
+          <PostList posts={sortedPosts} baseRoute="/user/forum" />
         </div>
       </div>
 
@@ -300,6 +302,8 @@ export default function UserForumDetailPage() {
             };
             fetchForums();
           }}
+          apiEndpoint="/api/user/forums"
+          baseRoute="/user/forum"
         />
         
         <main className="flex-1 p-6">
@@ -341,7 +345,7 @@ export default function UserForumDetailPage() {
             </div>
           </div>
           
-          <PostList posts={sortedPosts} />
+          <PostList posts={sortedPosts} baseRoute="/user/forum" />
         </main>
       </div>
 
