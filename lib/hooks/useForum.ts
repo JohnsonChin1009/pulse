@@ -229,4 +229,15 @@ export const forumAPI = {
     
     return response.json();
   },
-};
+  // Delete a post
+  async deletePost(postId: number) {
+    const response = await fetch(`/api/posts/${postId}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to delete post');
+    }
+    
+    return response.json();
+  },};

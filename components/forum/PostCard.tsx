@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { forumAPI } from "@/lib/hooks/useForum";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   ArrowUp,
   ArrowDown,
@@ -9,8 +10,10 @@ import {
   Share,
   Bookmark,
   MoreHorizontal,
+  Trash2,
 } from "lucide-react";
 import Link from "next/link";
+import toast from "react-hot-toast";
 
 // Updated interfaces to match the new data structure
 interface PostCardProps {
@@ -54,6 +57,9 @@ export default function PostCard({
   const [localUpvotes, setLocalUpvotes] = useState(post.upvotes);
   const [localDownvotes, setLocalDownvotes] = useState(post.downvotes);
   const [isVoting, setIsVoting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { user: currentUser } = useAuth();
 
   // TEST: Logging the base router
   useEffect(() => {
@@ -100,6 +106,23 @@ export default function PostCard({
       // You might want to show a toast notification here
     } finally {
       setIsVoting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (isDeleting) return;
+    
+    setIsDeleting(true);
+    try {
+      await forumAPI.deletePost(parseInt(post.id));
+      toast.success("Post deleted successfully");
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      toast.error("Failed to delete post");
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -188,7 +211,9 @@ export default function PostCard({
                 <span className="truncate">u/{displayUsername}</span>
                 <span className="flex-shrink-0">•</span>
                 <span className="flex-shrink-0">
-                  {formatTimeAgo(post.datePost)}
+                  {formatTimeAgo(post.datePost) === "now" 
+                    ? "now" 
+                    : `${formatTimeAgo(post.datePost)} ago`}
                 </span>
               </div>
             </div>
@@ -218,9 +243,14 @@ export default function PostCard({
                 <Share className="w-3 h-3" />
                 <span>Share</span>
               </button>
-              <button className="hover:text-foreground transition-colors ml-auto">
-                <MoreHorizontal className="w-3 h-3" />
-              </button>
+              {currentUser?.id === post.userId && (
+                <button 
+                  className="hover:text-foreground transition-colors ml-auto"
+                  onClick={() => setShowDeleteConfirm(true)}
+                >
+                  <Trash2 className="w-3 h-3 cursor-pointer hover:text-red-500" />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -287,7 +317,11 @@ export default function PostCard({
               u/{displayUsername}
             </Link>
             <span>•</span>
-            <span>{formatTimeAgo(post.datePost)} ago</span>
+            <span>
+              {formatTimeAgo(post.datePost) === "now" 
+                ? "now" 
+                : `${formatTimeAgo(post.datePost)} ago`}
+            </span>
           </div>
 
           {/* Post Title */}
@@ -319,12 +353,46 @@ export default function PostCard({
               <Bookmark className="w-4 h-4" />
               <span>Save</span>
             </button>
-            <button className="flex items-center gap-1 hover:text-foreground transition-colors ml-auto">
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
+            {currentUser?.id === post.userId && (
+              <button 
+                className="flex items-center gap-1 hover:text-foreground transition-colors ml-auto"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
-    </div>
-  );
-}
+      
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-background rounded-lg p-6 max-w-sm w-full">
+            <h3 className="text-lg font-semibold mb-2">Delete Post</h3>
+            <p className="text-muted-foreground mb-4">
+              Are you sure you want to delete this post? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 border border-border rounded-lg hover:bg-accent transition-colors"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+         </div>
+   );
+ }

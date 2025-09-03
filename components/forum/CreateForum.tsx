@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { forumAPI } from "@/lib/hooks/useForum";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, X, Send } from "lucide-react";
@@ -16,6 +17,11 @@ export default function CreateForum({ onForumCreated }: CreateForumProps) {
   const [topic, setTopic] = useState("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,9 +74,11 @@ export default function CreateForum({ onForumCreated }: CreateForumProps) {
     );
   }
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-card border border-border rounded-lg w-full max-w-md">
+  if (!mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
+      <div className="bg-background rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold text-foreground">
@@ -85,71 +93,74 @@ export default function CreateForum({ onForumCreated }: CreateForumProps) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {/* Topic */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Community name
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                r/
-              </span>
-              <input
-                type="text"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="community_name"
-                className="w-full pl-8 pr-3 py-3 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                maxLength={50}
-                required
+        <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+          <form onSubmit={handleSubmit} className="p-4 space-y-4">
+            {/* Topic */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Community name
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  r/
+                </span>
+                <input
+                  type="text"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder="community_name"
+                  className="w-full pl-8 pr-3 py-3 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  maxLength={50}
+                  required
+                />
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Community names including capitalization cannot be changed.{" "}
+                {topic.length}/50
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Description (optional)
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What is this community about?"
+                className="w-full p-3 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                rows={3}
+                maxLength={500}
               />
+              <div className="text-xs text-muted-foreground text-right">
+                {description.length}/500
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground">
-              Community names including capitalization cannot be changed.{" "}
-              {topic.length}/50
-            </div>
-          </div>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Description (optional)
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="What is this community about?"
-              className="w-full p-3 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-              rows={3}
-              maxLength={500}
-            />
-            <div className="text-xs text-muted-foreground text-right">
-              {description.length}/500
+            {/* Actions */}
+            <div className="flex justify-end gap-3 pt-4">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="px-4 py-2 border border-border rounded-lg hover:bg-accent transition-colors"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!topic.trim() || isSubmitting}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Send className="w-4 h-4" />
+                {isSubmitting ? "Creating..." : "Create Community"}
+              </button>
             </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 border border-border rounded-lg hover:bg-accent transition-colors"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!topic.trim() || isSubmitting}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Send className="w-4 h-4" />
-              {isSubmitting ? "Creating..." : "Create Community"}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

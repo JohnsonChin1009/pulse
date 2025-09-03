@@ -7,18 +7,18 @@ import Link from 'next/link';
 import CommentSection from '@/components/forum/CommentSection';
 
 interface Post {
-  id: number;
+  id: string;
   title: string;
   description: string;
-  date_posted: string | null;
-  upvotes: number | null;
-  downvotes: number | null;
-  forum_id: number;
-  user_id: string;
-  username: string | null;
-  user_profile_picture: string | null;
-  forum_topic: string | null;
-  comment_count: number;
+  datePost: string;
+  upvotes: number;
+  downvotes: number;
+  forumId: string;
+  userId: string;
+  commentCount: number;
+  username?: string;
+  userAvatar?: string | null;
+  forumName?: string;
 }
 
 export default function UserPostDetailPage() {
@@ -161,11 +161,11 @@ export default function UserPostDetailPage() {
         {/* Back Navigation */}
         <div className="mb-4">
           <Link
-            href={`/user/forum/${post.forum_id}`}
+            href={`/user/forum/${post.id}`}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to r/{post.forum_topic}
+            Back to r/{post.forumName}
           </Link>
         </div>
 
@@ -212,15 +212,15 @@ export default function UserPostDetailPage() {
               {/* Post Meta */}
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                 <Link
-                  href={`/user/forum/${post.forum_id}`}
+                  href={`/user/forum/${post.id}`}
                   className="font-medium hover:text-foreground"
                 >
-                  r/{post.forum_topic}
+                  r/{post.forumName}
                 </Link>
                 <span>•</span>
                 <span>Posted by u/{post.username || 'Unknown'}</span>
                 <span>•</span>
-                <span>{formatTimeAgo(post.date_posted)}</span>
+                <span>{formatTimeAgo(post.datePost)}</span>
               </div>
 
               {/* Post Title */}
@@ -237,7 +237,7 @@ export default function UserPostDetailPage() {
               <div className="flex items-center gap-4 text-sm text-muted-foreground border-t border-border pt-4">
                 <div className="flex items-center gap-1">
                   <MessageCircle className="w-4 h-4" />
-                  <span>{post.comment_count} comments</span>
+                  <span>{post.commentCount} comments</span>
                 </div>
                 <button className="flex items-center gap-1 hover:text-foreground transition-colors">
                   <Share className="w-4 h-4" />
