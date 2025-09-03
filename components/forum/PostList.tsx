@@ -36,8 +36,6 @@ export default function PostList({ posts, baseRoute }: PostListProps) {
   return (
     <div className="space-y-4">
       {posts.map((post) => {
-        // console.log(post)
-
         // Transform real data to match PostCard's expected format
         const transformedPost = {
           id: post.id,
