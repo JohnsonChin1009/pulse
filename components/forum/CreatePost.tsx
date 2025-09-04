@@ -4,16 +4,11 @@ import { useState, useEffect } from "react";
 import { forumAPI } from "@/lib/hooks/useForum";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, X, Send } from "lucide-react";
+import { Forum } from "@/types/forum";
 
 interface CreatePostProps {
   // For main forum page interface
-  forums?: Array<{
-    id: string;
-    name: string;
-    description: string;
-    color: string;
-    memberCount: number;
-  }>;
+  forums?: Forum[];
   selectedForumId?: string;
   onPostCreated?: () => void;
 
@@ -52,7 +47,7 @@ export default function CreatePost({
             const response = await fetch("/api/forums");
             if (response.ok) {
               const forumsData = await response.json();
-              const transformedForums = forumsData.map((forum: any) => ({
+              const transformedForums = forumsData.map((forum: Forum) => ({
                 id: forum.id.toString(),
                 name: forum.topic,
                 description: forum.description || "",

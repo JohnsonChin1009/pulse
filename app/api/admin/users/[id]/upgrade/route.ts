@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { usersRepository } from "@/lib/db/repositories/userRepository";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const updatedUser = await usersRepository.upgrade(id);
 

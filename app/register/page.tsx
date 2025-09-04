@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,7 @@ export default function RegistrationPage() {
   );
 
   // Form validation
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {};
 
     if (!username.trim()) {
@@ -82,7 +82,7 @@ export default function RegistrationPage() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [username, password, confirm, gender]);
 
   // Password strength calculator
   const pwStrength = useMemo(() => {
@@ -141,7 +141,7 @@ export default function RegistrationPage() {
     if (Object.keys(touched).length > 0) {
       validateForm();
     }
-  }, [username, password, confirm, gender, touched]);
+  }, [touched, validateForm]);
 
   const handleFieldBlur = (field: string) => {
     setTouched((prev) => ({ ...prev, [field]: true }));

@@ -5,21 +5,22 @@ import { users } from "@/lib/db/schema";
 import { z } from "zod";
 
 const UpdateProfilePictureSchema = z.object({
-  userId: z.string().uuid(),
-  profilePictureUrl: z.string().url(),
+  userId: z.string(),
+  profilePictureUrl: z.string(),
 });
 
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, profilePictureUrl } = UpdateProfilePictureSchema.parse(body);
+    const { userId, profilePictureUrl } =
+      UpdateProfilePictureSchema.parse(body);
 
     // Update the user's profile picture URL
     const [updatedUser] = await db
       .update(users)
-      .set({ 
+      .set({
         profile_picture_url: profilePictureUrl,
-        updated_at: new Date()
+        updated_at: new Date(),
       })
       .where(eq(users.id, userId))
       .returning({
@@ -31,30 +32,26 @@ export async function PUT(request: NextRequest) {
       });
 
     if (!updatedUser) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json({
       success: true,
       user: updatedUser,
     });
-
   } catch (error) {
     console.error("Update profile picture error:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input data", details: error.errors },
-        { status: 400 }
+        { error: "Invalid input data", details: error },
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -63,22 +60,22 @@ export async function PUT(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
-    const userId = formData.get('userId') as string;
+    const file = formData.get("file") as File;
+    const userId = formData.get("userId") as string;
 
     if (!file || !userId) {
       return NextResponse.json(
         { error: "File and userId are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
         { error: "Only JPEG, PNG, and WebP files are allowed" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -86,18 +83,14 @@ export async function POST(request: NextRequest) {
     if (file.size > 5 * 1024 * 1024) {
       return NextResponse.json(
         { error: "File size must be less than 5MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Generate unique filename
     const timestamp = Date.now();
-    const extension = file.name.split('.').pop();
+    const extension = file.name.split(".").pop();
     const fileName = `user_${userId}_${timestamp}.${extension}`;
-
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
 
     // Here you would upload to AWS S3
     // For now, we'll return a mock response
@@ -108,9 +101,9 @@ export async function POST(request: NextRequest) {
     // Update user's profile picture in database
     const [updatedUser] = await db
       .update(users)
-      .set({ 
+      .set({
         profile_picture_url: mockUploadedUrl,
-        updated_at: new Date()
+        updated_at: new Date(),
       })
       .where(eq(users.id, userId))
       .returning({
@@ -124,14 +117,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       user: updatedUser,
-      uploadedUrl: mockUploadedUrl
+      uploadedUrl: mockUploadedUrl,
     });
-
   } catch (error) {
     console.error("Upload profile picture error:", error);
     return NextResponse.json(
       { error: "Failed to upload profile picture" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
+

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 interface Pet {
   id: number;
@@ -233,10 +234,12 @@ export default function UserDashboard() {
 
               {/* Pet Image - Smaller */}
               <div className="relative mb-4">
-                <img
+                <Image
                   src={pet.pet_image_url}
                   alt={pet.pet_name}
-                  className="w-32 h-32 mx-auto rounded-full border-4 border-gray-200"
+                  width={128}
+                  height={128}
+                  className="mx-auto rounded-full border-4 border-gray-200"
                 />
                 <div className="absolute -top-2 -right-2 bg-yellow-400 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">
                   {pet.condition}

@@ -1,16 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Plus, X, Send } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Plus, X, Send } from "lucide-react";
+import { Forum } from "@/types/forum";
 
 interface CreatePostAuthProps {
-  forums?: Array<{
-    id: string;
-    name: string;
-    description: string;
-    color: string;
-    memberCount: number;
-  }>;
+  forums?: Forum[];
   selectedForumId?: string;
   onPostCreated?: () => void;
   forumId?: number;
@@ -18,45 +13,45 @@ interface CreatePostAuthProps {
   apiEndpoint?: string; // New prop for API endpoint
 }
 
-export default function CreatePostAuth({ 
-  forums, 
-  selectedForumId, 
-  onPostCreated, 
-  forumId, 
+export default function CreatePostAuth({
+  forums,
+  selectedForumId,
+  onPostCreated,
+  forumId,
   onClose,
-  apiEndpoint = '/api/user/posts' // Default to authenticated endpoint
+  apiEndpoint = "/api/user/posts", // Default to authenticated endpoint
 }: CreatePostAuthProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [selectedForum, setSelectedForum] = useState(selectedForumId || '');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [selectedForum, setSelectedForum] = useState(selectedForumId || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableForums, setAvailableForums] = useState(forums || []);
 
   const isSpecificForumMode = !!forumId;
-  
+
   useEffect(() => {
     if (isSpecificForumMode) {
       setIsOpen(true);
       setSelectedForum(forumId.toString());
-      
+
       if (!forums || forums.length === 0) {
         const fetchForums = async () => {
           try {
-            const response = await fetch('/api/user/forums');
+            const response = await fetch("/api/user/forums");
             if (response.ok) {
               const forumsData = await response.json();
-              const transformedForums = forumsData.map((forum: any) => ({
+              const transformedForums = forumsData.map((forum: Forum) => ({
                 id: forum.id.toString(),
                 name: forum.topic,
-                description: forum.description || '',
-                color: 'bg-blue-500',
-                memberCount: forum.popular_rank || 0
+                description: forum.description || "",
+                color: "bg-blue-500",
+                memberCount: forum.popular_rank || 0,
               }));
               setAvailableForums(transformedForums);
             }
           } catch (error) {
-            console.error('Error fetching forums:', error);
+            console.error("Error fetching forums:", error);
           }
         };
         fetchForums();
@@ -66,24 +61,24 @@ export default function CreatePostAuth({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!title.trim() || !description.trim() || !selectedForum) {
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
-      console.log('Creating post with data:', {
+      console.log("Creating post with data:", {
         title: title.trim(),
         description: description.trim(),
         forum_id: parseInt(selectedForum),
       });
-      
+
       const response = await fetch(apiEndpoint, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title: title.trim(),
@@ -94,16 +89,16 @@ export default function CreatePostAuth({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create post');
+        throw new Error(errorData.error || "Failed to create post");
       }
 
       const newPost = await response.json();
-      console.log('Post created successfully:', newPost);
+      console.log("Post created successfully:", newPost);
 
       // Reset form
-      setTitle('');
-      setDescription('');
-      setSelectedForum(selectedForumId || '');
+      setTitle("");
+      setDescription("");
+      setSelectedForum(selectedForumId || "");
       setIsOpen(false);
 
       // Notify parent component
@@ -116,8 +111,8 @@ export default function CreatePostAuth({
         onClose();
       }
     } catch (error) {
-      console.error('Error creating post:', error);
-      alert(error instanceof Error ? error.message : 'Failed to create post');
+      console.error("Error creating post:", error);
+      alert(error instanceof Error ? error.message : "Failed to create post");
     } finally {
       setIsSubmitting(false);
     }
@@ -125,9 +120,9 @@ export default function CreatePostAuth({
 
   const handleClose = () => {
     setIsOpen(false);
-    setTitle('');
-    setDescription('');
-    setSelectedForum(selectedForumId || '');
+    setTitle("");
+    setDescription("");
+    setSelectedForum(selectedForumId || "");
     if (onClose) {
       onClose();
     }
@@ -153,7 +148,9 @@ export default function CreatePostAuth({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-card rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-4 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">Create New Post</h2>
+              <h2 className="text-lg font-semibold text-foreground">
+                Create New Post
+              </h2>
               <button
                 onClick={handleClose}
                 className="p-1 hover:bg-accent rounded-lg transition-colors"
@@ -222,7 +219,12 @@ export default function CreatePostAuth({
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting || !title.trim() || !description.trim() || !selectedForum}
+                  disabled={
+                    isSubmitting ||
+                    !title.trim() ||
+                    !description.trim() ||
+                    !selectedForum
+                  }
                   className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {isSubmitting ? (

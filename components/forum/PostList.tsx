@@ -1,23 +1,8 @@
 import PostCard from "./PostCard";
-
-// Updated interfaces to match the real data structure from database
-interface RealPost {
-  id: string;
-  title: string;
-  description: string;
-  datePost: string | null;
-  upvotes: number | null;
-  downvotes: number | null;
-  forumId: number;
-  userId: string;
-  username: string | null;
-  forumName: string | null;
-  commentCount: number;
-  userAvatar?: string | null;
-}
+import { Post } from "@/types/forum";
 
 interface PostListProps {
-  posts: RealPost[];
+  posts: Post[];
   baseRoute?: string;
 }
 
@@ -62,7 +47,7 @@ export default function PostList({ posts, baseRoute }: PostListProps) {
           id: post.forumId.toString(),
           name: post.forumName || "Unknown Forum",
           description: "",
-          color: (post as any).forum?.color || "bg-blue-500", // Use forum color from post data
+          color: post.forum?.color || "bg-blue-500", // Use forum color from post data
           memberCount: 0, // We don't have member count in current schema
         };
 

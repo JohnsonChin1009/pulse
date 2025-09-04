@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { achievements } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
-import { S3Client, DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  DeleteObjectCommand,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3";
 import { db } from "@/lib/db/connection";
 
 const s3 = new S3Client({
@@ -17,9 +21,9 @@ const s3 = new S3Client({
 const BUCKET = process.env.S3_BUCKET_NAME || "";
 
 export async function POST(req: Request, context: { params: { id: string } }) {
-    const { id } = await context.params;
-    const achievementId = parseInt(id);
-    
+  const { id } = context.params;
+  const achievementId = parseInt(id);
+
   if (isNaN(achievementId)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
   }
@@ -28,7 +32,9 @@ export async function POST(req: Request, context: { params: { id: string } }) {
     const formData = await req.formData();
     const title = formData.get("title")?.toString() || "";
     const description = formData.get("description")?.toString() || "";
-    const achievementQuest = parseInt(formData.get("achievementQuest")?.toString() || "0");
+    const achievementQuest = parseInt(
+      formData.get("achievementQuest")?.toString() || "0",
+    );
     const imageFile = formData.get("image") as File | null;
 
     // Fetch current achievement from DB
@@ -37,9 +43,13 @@ export async function POST(req: Request, context: { params: { id: string } }) {
       .from(achievements)
       .where(eq(achievements.id, achievementId))
       .limit(1)
-      .then(res => res[0]);
+      .then((res) => res[0]);
 
-    if (!current) return NextResponse.json({ error: "Achievement not found" }, { status: 404 });
+    if (!current)
+      return NextResponse.json(
+        { error: "Achievement not found" },
+        { status: 404 },
+      );
 
     let imageUrl = current.achievement_icon;
 
@@ -60,7 +70,7 @@ export async function POST(req: Request, context: { params: { id: string } }) {
           Body: Buffer.from(arrayBuffer),
           ContentType: imageFile.type || undefined,
           ACL: "public-read",
-        })
+        }),
       );
 
       imageUrl = `https://${BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
@@ -81,6 +91,9 @@ export async function POST(req: Request, context: { params: { id: string } }) {
     return NextResponse.json({ achievement: updated[0] });
   } catch (err) {
     console.error(err);
-    return NextResponse.json({ error: "Failed to update achievement" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to update achievement" },
+      { status: 500 },
+    );
   }
 }

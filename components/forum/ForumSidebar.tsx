@@ -1,9 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Home, Users, TrendingUp, X, Plus } from 'lucide-react';
-import CreateForum from './CreateForum';
-import Link from 'next/link';
+import { Home, TrendingUp, X } from "lucide-react";
+import CreateForum from "./CreateForum";
+import Link from "next/link";
 
 // Updated interface to match real data structure
 interface Forum {
@@ -25,25 +24,35 @@ interface ForumSidebarProps {
   baseRoute?: string;
 }
 
-export default function ForumSidebar({ selectedForum, onForumSelect, forums, isOpen = true, onClose, onForumCreated, apiEndpoint, baseRoute = '/forum' }: ForumSidebarProps) {
+export default function ForumSidebar({
+  selectedForum,
+  onForumSelect,
+  forums,
+  isOpen = true,
+  onClose,
+  onForumCreated,
+  baseRoute = "/forum",
+}: ForumSidebarProps) {
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
-      
+
       {/* Sidebar */}
-      <aside className={`
+      <aside
+        className={`
         fixed lg:sticky top-0 lg:top-16 left-0 z-50 lg:z-auto
         w-64 lg:w-64 h-screen bg-card border-r border-border
         transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         overflow-y-auto
-      `}>
+      `}
+      >
         <div className="p-4">
           {/* Mobile close button */}
           <div className="flex justify-between items-center mb-4 lg:hidden">
@@ -67,15 +76,15 @@ export default function ForumSidebar({ selectedForum, onForumSelect, forums, isO
                   href={baseRoute}
                   onClick={onClose}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                    selectedForum === 'all'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-foreground hover:bg-accent'
+                    selectedForum === "all"
+                      ? "bg-primary text-primary-foreground"
+                      : "text-foreground hover:bg-accent"
                   }`}
                 >
                   <Home className="w-4 h-4" />
                   Home
                 </Link>
-                <Link 
+                <Link
                   href={`${baseRoute}?filter=popular`}
                   onClick={onClose}
                   className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left text-foreground hover:bg-accent transition-colors"
@@ -109,15 +118,17 @@ export default function ForumSidebar({ selectedForum, onForumSelect, forums, isO
                       }}
                       className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
                         selectedForum === forum.id
-                          ? 'bg-primary text-primary-foreground'
-                          : 'text-foreground hover:bg-accent'
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground hover:bg-accent"
                       }`}
                     >
                       <div className={`w-4 h-4 rounded-full ${forum.color}`} />
                       <div className="flex-1 min-w-0">
                         <div className="font-medium truncate">{forum.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {forum.memberCount > 0 ? `${forum.memberCount.toLocaleString()} members` : 'New community'}
+                          {forum.memberCount > 0
+                            ? `${forum.memberCount.toLocaleString()} members`
+                            : "New community"}
                         </div>
                       </div>
                     </button>
@@ -128,7 +139,9 @@ export default function ForumSidebar({ selectedForum, onForumSelect, forums, isO
 
             {/* Forum Rules */}
             <div className="bg-muted rounded-lg p-4">
-              <h4 className="font-semibold text-foreground mb-2">Forum Rules</h4>
+              <h4 className="font-semibold text-foreground mb-2">
+                Forum Rules
+              </h4>
               <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Be respectful and kind</li>
                 <li>• No medical advice</li>

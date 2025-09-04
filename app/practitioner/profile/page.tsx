@@ -97,11 +97,11 @@ export default function PractitionerProfilePage() {
         );
         setIsEditing(false);
       } else {
-        alert(data.error || "Failed to update username");
+        toast.error("Failed to update username");
       }
     } catch (error) {
       console.error("Error updating username:", error);
-      alert("Failed to update username");
+      toast.error("Failed to update username");
     } finally {
       setUpdateLoading(false);
     }
@@ -281,8 +281,10 @@ export default function PractitionerProfilePage() {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <p className="font-main text-green-600 font-semibold">Health Practitioner</p>
-                <BadgeCheck className="w-5 h-5 text-blue-500" title="Verified Practitioner" />
+                <p className="font-main text-green-600 font-semibold">
+                  Health Practitioner
+                </p>
+                <BadgeCheck className="w-5 h-5 text-blue-500" />
               </div>
             </div>
           </div>

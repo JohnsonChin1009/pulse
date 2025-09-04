@@ -12,27 +12,27 @@ export async function GET() {
       "https://pulse-app-files.s3.us-east-1.amazonaws.com/profile-pictures/sebastian.png",
     ];
 
-    const availablePictures = profilePictureUrls.map((url, index) => {
-      const filename = url.split('/').pop()?.split('.')[0] || '';
+    const availablePictures = profilePictureUrls.map((url) => {
+      const filename = url.split("/").pop()?.split(".")[0] || "";
       const name = filename.charAt(0).toUpperCase() + filename.slice(1);
-      
+
       return {
         id: filename,
         name: name,
-        url: url
+        url: url,
       };
     });
 
     return NextResponse.json({
       success: true,
-      pictures: availablePictures
+      pictures: availablePictures,
     });
-
   } catch (error) {
     console.error("Error getting profile pictures:", error);
     return NextResponse.json(
       { error: "Failed to get profile pictures" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
+

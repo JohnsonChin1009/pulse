@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X, Upload } from "lucide-react";
+import Image from "next/image";
 
 interface ProfilePicture {
   id: string;
@@ -122,9 +123,11 @@ export default function ProfilePictureModal({
               onClick={() => onSelectPicture(picture.url)}
               style={{ height: '80px' }}
             >
-              <img
+              <Image
                 src={picture.url}
                 alt={picture.name}
+                width={80}
+                height={80}
                 className="w-full h-full object-cover rounded-lg border-2 border-gray-300 hover:border-blue-500"
                 style={{
                   display: 'block',
@@ -168,9 +171,11 @@ export default function ProfilePictureModal({
             <div className="space-y-3">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-gray-300">
-                  <img 
+                  <Image 
                     src={previewUrl} 
                     alt="Preview" 
+                    width={64}
+                    height={64}
                     className="w-full h-full object-cover"
                   />
                 </div>

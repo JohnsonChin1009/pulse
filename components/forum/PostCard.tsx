@@ -9,7 +9,6 @@ import {
   MessageCircle,
   Share,
   Bookmark,
-  MoreHorizontal,
   Trash2,
   BadgeCheck,
 } from "lucide-react";
@@ -113,7 +112,7 @@ export default function PostCard({
 
   const handleDelete = async () => {
     if (isDeleting) return;
-    
+
     setIsDeleting(true);
     try {
       await forumAPI.deletePost(parseInt(post.id));
@@ -218,8 +217,8 @@ export default function PostCard({
                 </div>
                 <span className="flex-shrink-0">•</span>
                 <span className="flex-shrink-0">
-                  {formatTimeAgo(post.datePost) === "now" 
-                    ? "now" 
+                  {formatTimeAgo(post.datePost) === "now"
+                    ? "now"
                     : `${formatTimeAgo(post.datePost)} ago`}
                 </span>
               </div>
@@ -251,7 +250,7 @@ export default function PostCard({
                 <span>Share</span>
               </button>
               {currentUser?.id === post.userId && (
-                <button 
+                <button
                   className="hover:text-foreground transition-colors ml-auto"
                   onClick={() => setShowDeleteConfirm(true)}
                 >
@@ -330,8 +329,8 @@ export default function PostCard({
             </div>
             <span>•</span>
             <span>
-              {formatTimeAgo(post.datePost) === "now" 
-                ? "now" 
+              {formatTimeAgo(post.datePost) === "now"
+                ? "now"
                 : `${formatTimeAgo(post.datePost)} ago`}
             </span>
           </div>
@@ -366,7 +365,7 @@ export default function PostCard({
               <span>Save</span>
             </button>
             {currentUser?.id === post.userId && (
-              <button 
+              <button
                 className="flex items-center gap-1 hover:text-foreground transition-colors ml-auto"
                 onClick={() => setShowDeleteConfirm(true)}
               >
@@ -377,14 +376,15 @@ export default function PostCard({
           </div>
         </div>
       </div>
-      
+
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-background rounded-lg p-6 max-w-sm w-full">
             <h3 className="text-lg font-semibold mb-2">Delete Post</h3>
             <p className="text-muted-foreground mb-4">
-              Are you sure you want to delete this post? This action cannot be undone.
+              Are you sure you want to delete this post? This action cannot be
+              undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
@@ -405,6 +405,7 @@ export default function PostCard({
           </div>
         </div>
       )}
-         </div>
-   );
- }
+    </div>
+  );
+}
+

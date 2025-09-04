@@ -10,10 +10,9 @@ import { useForums, usePosts } from "@/lib/hooks/useForum";
 
 export default function PractitionerForumPage() {
   const router = useRouter();
-  const [selectedForum, setSelectedForum] = useState<string>("all");
+  const selectedForum = "all";
   const [sortBy, setSortBy] = useState<"hot" | "new" | "top">("hot");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showCreatePost, setShowCreatePost] = useState(false);
 
   // Fetch real data from database using user-specific endpoints
   const {
@@ -86,7 +85,7 @@ export default function PractitionerForumPage() {
     commentCount: post.comment_count || 0,
     username: post.username || "Anonymous",
     userAvatar: post.user_profile_picture,
-    userRole: post.user_role,
+    userRole: String,
     forumName: post.forum_topic || "Unknown Forum",
     forum: {
       color: getForumColor(post.forum_id),
@@ -120,11 +119,6 @@ export default function PractitionerForumPage() {
         return bScore - aScore;
     }
   });
-
-  const handlePostCreated = () => {
-    setShowCreatePost(false);
-    refetchPosts();
-  };
 
   return (
     <div className="min-h-screen bg-background max-w-md mx-auto">

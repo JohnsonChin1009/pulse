@@ -2,25 +2,36 @@ import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db/connection";
 import { quests, questCompletions } from "@/lib/db/schema";
-import { gte, lte, and, eq, leftJoin } from "drizzle-orm";
+import { gte, lte, and, eq } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   try {
     // Get userId from query params
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = searchParams.get("userId");
 
     if (!userId) {
       return NextResponse.json(
         { error: "User ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get start and end of today
     const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+    const startOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+    const endOfDay = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      23,
+      59,
+      59,
+    );
 
     // Fetch quests with completion status
     const questsWithCompletion = await db
@@ -43,18 +54,18 @@ export async function GET(request: NextRequest) {
         questCompletions,
         and(
           eq(questCompletions.quest_id, quests.id),
-          eq(questCompletions.user_id, userId)
-        )
+          eq(questCompletions.user_id, userId),
+        ),
       )
       .where(
         and(
           gte(quests.available_date, startOfDay),
-          lte(quests.available_date, endOfDay)
-        )
+          lte(quests.available_date, endOfDay),
+        ),
       );
 
     // Transform the data to include a boolean completed field
-    const questsWithStatus = questsWithCompletion.map(quest => ({
+    const questsWithStatus = questsWithCompletion.map((quest) => ({
       id: quest.id,
       title: quest.title,
       description: quest.description,
@@ -70,17 +81,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       quests: questsWithStatus,
-      count: questsWithStatus.length
+      count: questsWithStatus.length,
     });
-
   } catch (error) {
     console.error("Error fetching daily quests:", error);
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: "Failed to fetch daily quests" 
+        error: "Failed to fetch daily quests",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

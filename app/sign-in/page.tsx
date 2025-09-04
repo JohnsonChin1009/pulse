@@ -77,8 +77,9 @@ export default function SignInPage() {
         } else {
           router.push(`/register?email=${encodeURIComponent(email)}`);
         }
-      } catch (e: any) {
-        toast.error(e.message || "Something went wrong.");
+      } catch (error: unknown) {
+        console.error("Error occured: ", error);
+        toast.error("Something went wrong.");
       } finally {
         setLoading(false);
       }
@@ -112,8 +113,9 @@ export default function SignInPage() {
         const data = await res.json().catch(() => ({}));
         toast.error(data.error || "Invalid email or password.");
       }
-    } catch (e: any) {
-      toast.error(e.message || "Login failed.");
+    } catch (error: unknown) {
+      console.error("Error occured: ", error);
+      toast.error("Login failed.");
     } finally {
       setLoading(false);
     }
