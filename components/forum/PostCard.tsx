@@ -11,6 +11,7 @@ import {
   Bookmark,
   MoreHorizontal,
   Trash2,
+  BadgeCheck,
 } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -30,6 +31,7 @@ interface PostCardProps {
     username?: string;
     userAvatar?: string | null;
     forumName?: string;
+    userRole?: string;
   };
   user?: {
     id: string;
@@ -208,7 +210,12 @@ export default function PostCard({
                 <span>•</span>
               </div>
               <div className="flex items-center gap-1 min-w-0 flex-1">
-                <span className="truncate">u/{displayUsername}</span>
+                <div className="flex items-center gap-1 min-w-0">
+                  <span className="truncate">u/{displayUsername}</span>
+                  {post.userRole === "practitioner" && (
+                    <BadgeCheck className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                  )}
+                </div>
                 <span className="flex-shrink-0">•</span>
                 <span className="flex-shrink-0">
                   {formatTimeAgo(post.datePost) === "now" 
@@ -310,12 +317,17 @@ export default function PostCard({
             </Link>
             <span>•</span>
             <span>Posted by</span>
-            <Link
-              href={`/user/${displayUsername}`}
-              className="hover:text-foreground transition-colors"
-            >
-              u/{displayUsername}
-            </Link>
+            <div className="flex items-center gap-1">
+              <Link
+                href={`/user/${displayUsername}`}
+                className="hover:text-foreground transition-colors"
+              >
+                u/{displayUsername}
+              </Link>
+              {post.userRole === "practitioner" && (
+                <BadgeCheck className="w-4 h-4 text-blue-500" />
+              )}
+            </div>
             <span>•</span>
             <span>
               {formatTimeAgo(post.datePost) === "now" 

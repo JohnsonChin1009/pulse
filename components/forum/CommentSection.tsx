@@ -9,6 +9,7 @@ import {
   MessageCircle,
   MoreHorizontal,
   Send,
+  BadgeCheck,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -129,9 +130,14 @@ function Comment({ comment, onVote }: CommentProps) {
         {/* Comment Content */}
         <div className="flex-1">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-            <span className="font-medium">
-              u/{comment.username || "Anonymous"}
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="font-medium">
+                u/{comment.username || "Anonymous"}
+              </span>
+              {comment.user_role === "practitioner" && (
+                <BadgeCheck className="w-4 h-4 text-blue-500" />
+              )}
+            </div>
             <span>•</span>
             <span>{formatTimeAgo(comment.date_created)}</span>
           </div>

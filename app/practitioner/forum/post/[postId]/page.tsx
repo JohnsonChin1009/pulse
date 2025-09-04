@@ -61,6 +61,7 @@ export default function PractitionerPostDetailPage() {
         setPost(postData);
         setLocalUpvotes(postData.upvotes || 0);
         setLocalDownvotes(postData.downvotes || 0);
+        console.log("Post Topic: ", postData.forum_topic);
       } catch (err) {
         console.error("Error fetching post:", err);
         setError("Failed to load post");
@@ -171,7 +172,7 @@ export default function PractitionerPostDetailPage() {
         {/* Back Navigation */}
         <div className="mb-4">
           <Link
-            href={`/user/forum/${post.forum_id}`}
+            href={`/practitioner/forum/${post.forum_id}`}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />

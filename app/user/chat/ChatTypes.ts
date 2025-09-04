@@ -4,6 +4,7 @@ export interface AvailableUser {
   name: string;
   avatar: string;
   status: string;
+  role?: string;
 }
 
 export interface Attachment {

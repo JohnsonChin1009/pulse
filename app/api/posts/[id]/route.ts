@@ -16,7 +16,7 @@ export async function GET(
       );
     }
 
-    const post = await forumRepository.getPostById(id);
+    const post = await forumRepository.getPostWithUserAndForumById(id);
     if (!post) {
       return NextResponse.json(
         { error: "Post not found" },

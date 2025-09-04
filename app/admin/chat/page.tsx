@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Search, Send, Menu, X, Plus, Paperclip, FileText, ImageIcon, Eye } from "lucide-react"
+import { Search, Send, Menu, X, Plus, Paperclip, FileText, ImageIcon, Eye, BadgeCheck } from "lucide-react"
 import { ChatSession, AvailableUser, ChatMessage, Attachment } from "./ChatTypes"
 import { useAuth } from "../authContext"
 import { getAblyClient } from "@/lib/ably";
@@ -122,6 +122,7 @@ export default function LiveChatPage() {
             email: u.email,
             avatar: u.profile_picture_url ?? "/images/johnson.png",
             status: u.online_status ? "online" : "offline",
+            role: u.role,
           }))
         )
       );
@@ -551,7 +552,12 @@ export default function LiveChatPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{selectedOtherUser?.name || "Unknown User"}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-gray-900">{selectedOtherUser?.name || "Unknown User"}</h3>
+                      {selectedOtherUser?.role === "practitioner" && (
+                        <BadgeCheck className="w-5 h-5 text-blue-500" />
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500 capitalize flex items-center gap-1">
                       <span
                         className={`w-2 h-2 rounded-full ${getStatusColor(selectedOtherUser?.status || "offline")}`}
@@ -748,7 +754,12 @@ export default function LiveChatPage() {
                                 ></div>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-900 text-sm">{user.name}</p>
+                                <div className="flex items-center gap-1">
+                                  <p className="font-medium text-gray-900 text-sm">{user.name}</p>
+                                  {user.role === "practitioner" && (
+                                    <BadgeCheck className="w-4 h-4 text-blue-500" />
+                                  )}
+                                </div>
                                 <p className="text-xs text-gray-500 capitalize flex items-center gap-1">
                                   ID: {user.id}
                                 </p>
@@ -804,7 +815,12 @@ export default function LiveChatPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <p className="font-medium text-gray-900 truncate text-sm">{otherUser?.name || "Unknown User"}</p>
+                            <div className="flex items-center gap-1 min-w-0">
+                              <p className="font-medium text-gray-900 truncate text-sm">{otherUser?.name || "Unknown User"}</p>
+                              {otherUser?.role === "practitioner" && (
+                                <BadgeCheck className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                              )}
+                            </div>
                             <div className="flex items-center gap-1">
                               {conversation.unread[currentUserId] > 0 && (
                                 <div className="bg-[#F5BE66] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">

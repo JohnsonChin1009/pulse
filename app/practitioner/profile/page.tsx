@@ -3,7 +3,7 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import { PenLine, Check, X, LogOut } from "lucide-react";
+import { PenLine, Check, X, LogOut, BadgeCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import ProfilePictureModal from "@/components/custom/ProfilePictureModal";
@@ -280,7 +280,10 @@ export default function PractitionerProfilePage() {
                   </>
                 )}
               </div>
-              <p className="font-main text-green-600 font-semibold">Health Practitioner</p>
+              <div className="flex items-center gap-2">
+                <p className="font-main text-green-600 font-semibold">Health Practitioner</p>
+                <BadgeCheck className="w-5 h-5 text-blue-500" title="Verified Practitioner" />
+              </div>
             </div>
           </div>
 

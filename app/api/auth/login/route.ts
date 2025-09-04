@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input data" },
+        { error: "Invalid email or password" },
         { status: 400 },
       );
     }

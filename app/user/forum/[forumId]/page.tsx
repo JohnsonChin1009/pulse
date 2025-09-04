@@ -173,6 +173,7 @@ export default function UserForumDetailPage() {
     commentCount: post.comment_count || 0,
     username: post.username || 'Anonymous',
     userAvatar: post.user_profile_picture,
+    userRole: post.user_role,
     forumName: post.forum_topic || currentForum.topic,
     forum: {
       color: getForumColor(post.forum_id)

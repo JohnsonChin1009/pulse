@@ -61,6 +61,35 @@ export const forumRepository = {
     return row ?? null;
   },
 
+  async getPostWithUserAndForumById(id: number) {
+    const [row] = await db
+      .select({
+        id: forumPosts.id,
+        title: forumPosts.title,
+        description: forumPosts.description,
+        date_posted: forumPosts.date_posted,
+        upvotes: forumPosts.upvotes,
+        downvotes: forumPosts.downvotes,
+        forum_id: forumPosts.forum_id,
+        user_id: forumPosts.user_id,
+        username: users.username,
+        user_profile_picture: users.profile_picture_url,
+        user_role: users.role,
+        forum_topic: forums.topic,
+        comment_count: sql<number>`(
+          SELECT COUNT(*) 
+          FROM ${forumComments} 
+          WHERE ${forumComments.forum_post_id} = ${forumPosts.id}
+        )`.as('comment_count')
+      })
+      .from(forumPosts)
+      .leftJoin(users, eq(forumPosts.user_id, users.id))
+      .innerJoin(forums, eq(forumPosts.forum_id, forums.id))
+      .where(eq(forumPosts.id, id))
+      .limit(1);
+    return row ?? null;
+  },
+
   async getPostsByForumId(forumId: number): Promise<ForumPostRow[]> {
     return db
       .select()
@@ -89,6 +118,7 @@ export const forumRepository = {
         user_id: forumPosts.user_id,
         username: users.username,
         user_profile_picture: users.profile_picture_url,
+        user_role: users.role,
         forum_topic: forums.topic,
         // Calculate comment count
         comment_count: sql<number>`(
@@ -99,7 +129,7 @@ export const forumRepository = {
       })
       .from(forumPosts)
       .leftJoin(users, eq(forumPosts.user_id, users.id))
-      .leftJoin(forums, eq(forumPosts.forum_id, forums.id))
+      .innerJoin(forums, eq(forumPosts.forum_id, forums.id))
       .orderBy(desc(forumPosts.date_posted));
   },
 
@@ -116,6 +146,7 @@ export const forumRepository = {
         user_id: forumPosts.user_id,
         username: users.username,
         user_profile_picture: users.profile_picture_url,
+        user_role: users.role,
         forum_topic: forums.topic,
         comment_count: sql<number>`(
           SELECT COUNT(*) 
@@ -125,7 +156,7 @@ export const forumRepository = {
       })
       .from(forumPosts)
       .leftJoin(users, eq(forumPosts.user_id, users.id))
-      .leftJoin(forums, eq(forumPosts.forum_id, forums.id))
+      .innerJoin(forums, eq(forumPosts.forum_id, forums.id))
       .where(eq(forumPosts.forum_id, forumId))
       .orderBy(desc(forumPosts.date_posted));
   },
@@ -208,6 +239,7 @@ export const forumRepository = {
         user_id: forumComments.user_id,
         username: users.username,
         user_profile_picture: users.profile_picture_url,
+        user_role: users.role,
       })
       .from(forumComments)
       .leftJoin(users, eq(forumComments.user_id, users.id))
