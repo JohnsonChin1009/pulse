@@ -240,4 +240,40 @@ export const forumAPI = {
     }
     
     return response.json();
-  },};
+  },
+};
+
+// Custom hook for fetching a single post
+export function usePost(postId: string, apiEndpoint: string = '/api/user/posts') {
+  const [post, setPost] = useState<ForumPost | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPost = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${apiEndpoint}/${postId}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('Post not found');
+        }
+        throw new Error('Failed to fetch post');
+      }
+      const data = await response.json();
+      setPost(data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (postId) {
+      fetchPost();
+    }
+  }, [postId, apiEndpoint]);
+
+  return { post, loading, error, refetch: fetchPost };
+}

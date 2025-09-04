@@ -1,72 +1,30 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowUp, ArrowDown, MessageCircle, Share, Bookmark, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import CommentSection from '@/components/forum/CommentSection';
-
-interface Post {
-  id: string;
-  title: string;
-  description: string;
-  datePost: string;
-  upvotes: number;
-  downvotes: number;
-  forumId: string;
-  userId: string;
-  commentCount: number;
-  username?: string;
-  userAvatar?: string | null;
-  forumName?: string;
-}
+import { usePost } from '@/lib/hooks/useForum';
 
 export default function UserPostDetailPage() {
   const params = useParams();
   const router = useRouter();
   const postId = params.postId as string;
   
-  const [post, setPost] = useState<Post | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { post, loading, error } = usePost(postId, '/api/user/posts');
   const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
   const [localUpvotes, setLocalUpvotes] = useState(0);
   const [localDownvotes, setLocalDownvotes] = useState(0);
   const [isVoting, setIsVoting] = useState(false);
 
-  // Fetch post data
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await fetch(`/api/posts/${postId}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError('Post not found');
-            return;
-          }
-          throw new Error('Failed to fetch post');
-        }
-
-        const postData = await response.json();
-        setPost(postData);
-        setLocalUpvotes(postData.upvotes || 0);
-        setLocalDownvotes(postData.downvotes || 0);
-
-      } catch (err) {
-        console.error('Error fetching post:', err);
-        setError('Failed to load post');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (postId) {
-      fetchPost();
+  // Update local vote counts when post data loads
+  useState(() => {
+    if (post) {
+      setLocalUpvotes(post.upvotes || 0);
+      setLocalDownvotes(post.downvotes || 0);
     }
-  }, [postId]);
+  });
 
   const handleVote = async (voteType: 'up' | 'down') => {
     if (isVoting || !post) return;
@@ -114,7 +72,7 @@ export default function UserPostDetailPage() {
     }
   };
 
-  const formatTimeAgo = (dateString: string | null) => {
+  const formatTimeAgo = (dateString: string | Date | null) => {
     if (!dateString) return 'Unknown date';
     const now = new Date();
     const postDate = new Date(dateString);
@@ -161,11 +119,11 @@ export default function UserPostDetailPage() {
         {/* Back Navigation */}
         <div className="mb-4">
           <Link
-            href={`/user/forum/${post.id}`}
+            href={`/user/forum/${post.forum_id}`}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to r/{post.forumName}
+            Back to r/{post.forum_topic}
           </Link>
         </div>
 
@@ -212,15 +170,15 @@ export default function UserPostDetailPage() {
               {/* Post Meta */}
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                 <Link
-                  href={`/user/forum/${post.id}`}
+                  href={`/user/forum/${post.forum_id}`}
                   className="font-medium hover:text-foreground"
                 >
-                  r/{post.forumName}
+                  r/{post.forum_topic}
                 </Link>
                 <span>•</span>
                 <span>Posted by u/{post.username || 'Unknown'}</span>
                 <span>•</span>
-                <span>{formatTimeAgo(post.datePost)}</span>
+                <span>{formatTimeAgo(post.date_posted)}</span>
               </div>
 
               {/* Post Title */}
@@ -237,7 +195,7 @@ export default function UserPostDetailPage() {
               <div className="flex items-center gap-4 text-sm text-muted-foreground border-t border-border pt-4">
                 <div className="flex items-center gap-1">
                   <MessageCircle className="w-4 h-4" />
-                  <span>{post.commentCount} comments</span>
+                  <span>{post.comment_count} comments</span>
                 </div>
                 <button className="flex items-center gap-1 hover:text-foreground transition-colors">
                   <Share className="w-4 h-4" />
