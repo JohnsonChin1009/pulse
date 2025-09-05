@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { achievements } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -20,9 +20,11 @@ const s3 = new S3Client({
 
 const BUCKET = process.env.S3_BUCKET_NAME || "";
 
-export async function POST(req: Request, context: { params: { id: string } }) {
-  const { id } = context.params;
-  const achievementId = parseInt(id);
+export async function POST(req: NextRequest) {
+  const url = new URL(req.url);
+  const segments = url.pathname.split("/"); // .../update/[id]/route
+  const idStr = segments[segments.length - 2]; // grab the [id]
+  const achievementId = Number(idStr);
 
   if (isNaN(achievementId)) {
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });

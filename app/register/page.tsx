@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,7 +32,7 @@ import {
   Users,
 } from "lucide-react";
 
-export default function RegistrationPage() {
+function RegistrationPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -478,5 +478,21 @@ export default function RegistrationPage() {
         </Card>
       </div>
     </main>
+  );
+}
+
+export default function RegistrationPage() {
+  return (
+    <Suspense fallback={
+      <main className="bg-primary flex flex-col justify-center items-center min-h-screen max-w-md mx-auto py-10 px-6">
+        <div className="text-center mb-8">
+          <h1 className="font-headline text-3xl mb-4">Create Account</h1>
+          <p className="text-gray-600 mb-8">Loading registration page...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+        </div>
+      </main>
+    }>
+      <RegistrationPageContent />
+    </Suspense>
   );
 }

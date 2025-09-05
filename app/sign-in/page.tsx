@@ -1,14 +1,14 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { FcGoogle } from "react-icons/fc";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 
-export default function SignInPage() {
+function SignInPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -211,5 +211,21 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <div className="bg-primary flex flex-col justify-center items-center min-h-screen max-w-md mx-auto py-10 px-6 space-y-10">
+        <div className="text-center">
+          <h1 className="font-headline text-3xl mb-4">Welcome Back</h1>
+          <p className="text-gray-600 mb-8">Loading sign in page...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+        </div>
+      </div>
+    }>
+      <SignInPageContent />
+    </Suspense>
   );
 }

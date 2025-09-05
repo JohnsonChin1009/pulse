@@ -17,7 +17,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push({
+        "osx-temperature-sensor": "commonjs osx-temperature-sensor",
+      });
+    } else {
+      config.resolve.alias["osx-temperature-sensor"] = false;
+    }
     config.cache = false; // disable file-system caching in Docker
     return config;
   },

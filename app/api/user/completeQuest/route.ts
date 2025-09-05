@@ -11,7 +11,7 @@ const getXPNeededForLevel = (level: number) => {
 const calculateNewLevel = (totalXP: number) => {
   let level = 1;
   let xpUsed = 0;
-  
+
   while (true) {
     const xpNeededForNextLevel = getXPNeededForLevel(level);
     if (xpUsed + xpNeededForNextLevel <= totalXP) {
@@ -21,7 +21,7 @@ const calculateNewLevel = (totalXP: number) => {
       break;
     }
   }
-  
+
   return level;
 };
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     if (!questId || !userId) {
       return NextResponse.json(
         { error: "Quest ID and User ID are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -43,15 +43,15 @@ export async function POST(request: NextRequest) {
       .where(
         and(
           eq(questCompletions.quest_id, questId),
-          eq(questCompletions.user_id, userId)
-        )
+          eq(questCompletions.user_id, userId),
+        ),
       )
       .limit(1);
 
     if (existingCompletion.length > 0) {
       return NextResponse.json(
         { error: "Quest already completed" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -63,10 +63,7 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (!quest) {
-      return NextResponse.json(
-        { error: "Quest not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Quest not found" }, { status: 404 });
     }
 
     // Get user's pet
@@ -77,10 +74,7 @@ export async function POST(request: NextRequest) {
       .limit(1);
 
     if (!pet) {
-      return NextResponse.json(
-        { error: "Pet not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Pet not found" }, { status: 404 });
     }
 
     // Get user's leaderboard entry
@@ -93,12 +87,12 @@ export async function POST(request: NextRequest) {
     if (!leaderboard) {
       return NextResponse.json(
         { error: "Leaderboard entry not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Calculate new XP and level
-    const newTotalXP = pet.pet_experience + quest.points_awarded;
+    const newTotalXP = pet.pet_experience + quest.points_awarded!;
     const newLevel = calculateNewLevel(newTotalXP);
     const leveledUp = newLevel > pet.pet_level;
 
@@ -106,8 +100,9 @@ export async function POST(request: NextRequest) {
     const newHappiness = Math.min(pet.pet_happiness + 10, 100); // Cap at 100
 
     // Calculate new leaderboard stats
-    const newCumulativeScore = leaderboard.highest_score_cumulative + quest.points_awarded;
-    const newHighestLevel = Math.max(leaderboard.highest_level, newLevel);
+    const newCumulativeScore =
+      leaderboard.highest_score_cumulative! + quest.points_awarded!;
+    const newHighestLevel = Math.max(leaderboard.highest_level!, newLevel);
 
     await db.transaction(async (tx) => {
       // Record quest completion
@@ -157,12 +152,12 @@ export async function POST(request: NextRequest) {
         points_awarded: quest.points_awarded,
       },
     });
-
   } catch (error) {
     console.error("Quest completion error:", error);
     return NextResponse.json(
       { error: "Failed to complete quest" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
+

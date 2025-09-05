@@ -24,16 +24,16 @@ export async function PUT(request: NextRequest) {
     if (existingUser.length > 0 && existingUser[0].id !== userId) {
       return NextResponse.json(
         { error: "Username is already taken" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Update the user's username
     const [updatedUser] = await db
       .update(users)
-      .set({ 
+      .set({
         username: username,
-        updated_at: new Date()
+        updated_at: new Date(),
       })
       .where(eq(users.id, userId))
       .returning({
@@ -45,30 +45,27 @@ export async function PUT(request: NextRequest) {
       });
 
     if (!updatedUser) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     return NextResponse.json({
       success: true,
       user: updatedUser,
     });
-
   } catch (error) {
     console.error("Update profile error:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input data", details: error.errors },
-        { status: 400 }
+        { error: "Invalid input data", details: error },
+        { status: 400 },
       );
     }
 
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
+

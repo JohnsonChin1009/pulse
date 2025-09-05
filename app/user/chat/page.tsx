@@ -3,7 +3,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +50,7 @@ async function markConversationAsRead(sessionId: string, userId: string) {
   }
 }
 
-export default function LiveChatPage() {
+function LiveChatPageContent() {
   const [allConversations, setAllConversations] = useState<ChatSession[]>();
   const [selectedConversation, setSelectedConversation] =
     useState<ChatSession | null>(null);
@@ -893,5 +893,27 @@ export default function LiveChatPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function UserChatPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-6 max-w-7xl mx-auto pb-25 md:pb-0 mb-0 md:mb-12">
+        <div className="mb-6">
+          <h1 className="font-montserrat font-bold text-3xl text-gray-900 mb-2">
+            Live Chat
+          </h1>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+          <div className="flex h-[850px] relative items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            <span className="ml-4 text-gray-600">Loading chat...</span>
+          </div>
+        </div>
+      </div>
+    }>
+      <LiveChatPageContent />
+    </Suspense>
   );
 }

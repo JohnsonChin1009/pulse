@@ -5,12 +5,9 @@ import { forumRepository } from "@/lib/db/repositories/forumRepository";
 export async function GET(req: NextRequest) {
   try {
     const userId = req.headers.get("x-user-id");
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const forums = await forumRepository.getAllForums();
@@ -19,7 +16,7 @@ export async function GET(req: NextRequest) {
     console.error("Error fetching forums:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -28,28 +25,23 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const userId = req.headers.get("x-user-id");
-    
+
     if (!userId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
     const { topic, description } = body;
 
     if (!topic) {
-      return NextResponse.json(
-        { error: "Topic is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Topic is required" }, { status: 400 });
     }
 
     const forum = await forumRepository.createForum({
       topic,
       description: description || null,
       popular_rank: 0,
+      user_id: userId,
     });
 
     return NextResponse.json(forum, { status: 201 });
@@ -57,7 +49,7 @@ export async function POST(req: NextRequest) {
     console.error("Error creating forum:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

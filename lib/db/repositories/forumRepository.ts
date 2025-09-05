@@ -160,33 +160,6 @@ export const forumRepository = {
       .where(eq(forumPosts.forum_id, forumId))
       .orderBy(desc(forumPosts.date_posted));
   },
-  async getPostWithUserAndForumById(id: number) {
-    const [row] = await db
-      .select({
-        id: forumPosts.id,
-        title: forumPosts.title,
-        description: forumPosts.description,
-        date_posted: forumPosts.date_posted,
-        upvotes: forumPosts.upvotes,
-        downvotes: forumPosts.downvotes,
-        forum_id: forumPosts.forum_id,
-        user_id: forumPosts.user_id,
-        username: users.username,
-        user_profile_picture: users.profile_picture_url,
-        forum_topic: forums.topic,
-        comment_count: sql<number>`(
-          SELECT COUNT(*) 
-          FROM ${forumComments} 
-          WHERE ${forumComments.forum_post_id} = ${forumPosts.id}
-        )`.as('comment_count')
-      })
-      .from(forumPosts)
-      .leftJoin(users, eq(forumPosts.user_id, users.id))
-      .leftJoin(forums, eq(forumPosts.forum_id, forums.id))
-      .where(eq(forumPosts.id, id))
-      .limit(1);
-    return row ?? null;
-  },
   async updatePost(id: number, data: Partial<ForumPostInsert>): Promise<ForumPostRow | null> {
     const [row] = await db
       .update(forumPosts)

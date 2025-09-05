@@ -3,13 +3,27 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface LeaderboardPlayer {
+  userId: string;
+  username: string;
+  points: number;
+  rank: number;
+}
+
+interface UserPosition {
+  rank: number;
+  percentile: number;
+}
+
 export default function PractitionerLeaderboardPage() {
   const { user } = useAuth();
   const [leaderboardState, setLeaderboardState] = useState<
     "Weekly" | "All Time"
   >("All Time");
-  const [leaderboardData, setLeaderboardData] = useState([]);
-  const [userPosition, setUserPosition] = useState(null);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardPlayer[]>(
+    [],
+  );
+  const [userPosition, setUserPosition] = useState<UserPosition | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

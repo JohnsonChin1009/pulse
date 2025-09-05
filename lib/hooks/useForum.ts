@@ -35,6 +35,7 @@ export interface ForumComment {
   user_id: string;
   username: string | null;
   user_profile_picture: string | null;
+  user_role: string | null;
 }
 
 // Custom hook for fetching forums
