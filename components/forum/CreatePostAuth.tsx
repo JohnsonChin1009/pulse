@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, X, Send } from "lucide-react";
 import { Forum } from "@/types/forum";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CreatePostAuthProps {
   forums?: Forum[];
@@ -29,6 +30,7 @@ export default function CreatePostAuth({
   const [availableForums, setAvailableForums] = useState(forums || []);
 
   const isSpecificForumMode = !!forumId;
+  const { user } = useAuth();
 
   useEffect(() => {
     if (isSpecificForumMode) {
@@ -66,25 +68,40 @@ export default function CreatePostAuth({
       return;
     }
 
+    if (!user?.id) {
+      alert("You must be logged in to create a post");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      console.log("Creating post with data:", {
+      // Prepare the request payload based on the API endpoint
+      const payload: {
+        title: string;
+        description: string;
+        forum_id: number;
+        user_id?: string;
+      } = {
         title: title.trim(),
         description: description.trim(),
         forum_id: parseInt(selectedForum),
-      });
+      };
+
+      // For /api/posts endpoint, include user_id in the body
+      // For authenticated endpoints (/api/practitioner/posts, /api/user/posts), user_id comes from middleware
+      if (apiEndpoint === "/api/posts") {
+        payload.user_id = user.id;
+      }
+
+      console.log("Creating post with data:", payload);
 
       const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim(),
-          forum_id: parseInt(selectedForum),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
