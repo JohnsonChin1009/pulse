@@ -249,7 +249,7 @@ export default function PostCard({
                 <Share className="w-3 h-3" />
                 <span>Share</span>
               </button>
-              {currentUser?.id === post.userId && (
+              {(currentUser?.id === post.userId || currentUser?.role === "admin") && (
                 <button
                   className="hover:text-foreground transition-colors ml-auto"
                   onClick={() => setShowDeleteConfirm(true)}
@@ -364,7 +364,7 @@ export default function PostCard({
               <Bookmark className="w-4 h-4" />
               <span>Save</span>
             </button>
-            {currentUser?.id === post.userId && (
+            {(currentUser?.id === post.userId || currentUser?.role === "admin") && (
               <button
                 className="flex items-center gap-1 hover:text-foreground transition-colors ml-auto"
                 onClick={() => setShowDeleteConfirm(true)}

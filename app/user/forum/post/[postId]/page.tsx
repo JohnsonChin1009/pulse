@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowUp, ArrowDown, MessageCircle, Share, Bookmark, ArrowLeft } from 'lucide-react';
+import { ArrowUp, ArrowDown, MessageCircle, Share, Bookmark, Trash2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import CommentSection from '@/components/forum/CommentSection';
 import { usePost } from '@/lib/hooks/useForum';
@@ -17,6 +17,7 @@ export default function UserPostDetailPage() {
   const [localUpvotes, setLocalUpvotes] = useState(0);
   const [localDownvotes, setLocalDownvotes] = useState(0);
   const [isVoting, setIsVoting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Update local vote counts when post data loads
   useState(() => {
@@ -69,6 +70,33 @@ export default function UserPostDetailPage() {
       console.error('Error voting:', error);
     } finally {
       setIsVoting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!post || isDeleting) return;
+    
+    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    
+    try {
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        router.push(`/admin/forum/${post.forum_id}`);
+      } else {
+        alert('Failed to delete post. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -167,18 +195,31 @@ export default function UserPostDetailPage() {
 
             {/* Main Content */}
             <div className="flex-1 min-w-0">
-              {/* Post Meta */}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                <Link
-                  href={`/user/forum/${post.forum_id}`}
-                  className="font-medium hover:text-foreground"
-                >
-                  r/{post.forum_topic}
-                </Link>
-                <span>•</span>
-                <span>Posted by u/{post.username || 'Unknown'}</span>
-                <span>•</span>
-                <span>{formatTimeAgo(post.date_posted)}</span>
+                {/* Post Meta */}
+                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                  <Link
+                    href={`/user/forum/${post.forum_id}`}
+                    className="font-medium hover:text-foreground"
+                  >
+                    r/{post.forum_topic}
+                  </Link>
+                  <span>•</span>
+                  <span>Posted by u/{post.username || 'Unknown'}</span>
+                  <span>•</span>
+                  <span>{formatTimeAgo(post.date_posted)}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="flex items-center gap-1 px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      {isDeleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
               </div>
 
               {/* Post Title */}

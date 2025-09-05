@@ -254,10 +254,6 @@ export default function AdminPostDetailPage() {
                 
                 {/* Admin Actions */}
                 <div className="flex items-center gap-2">
-                  <button className="flex items-center gap-1 px-3 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                    <Edit className="w-3 h-3" />
-                    Edit
-                  </button>
                   <button
                     onClick={handleDelete}
                     disabled={isDeleting}
