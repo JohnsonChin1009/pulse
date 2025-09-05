@@ -219,147 +219,297 @@ export default function UserPostDetailPage() {
         </div>
 
         {/* Post Content */}
-        <div className="bg-card border border-border rounded-lg p-6 mb-6">
-          <div className="flex gap-4">
-            {/* Vote Section */}
-            <div className="flex flex-col items-center gap-1 flex-shrink-0">
-              <button
-                onClick={() => handleVote('up')}
-                disabled={isVoting}
-                className={`p-2 rounded-lg transition-colors ${
-                  userVote === 'up'
-                    ? 'bg-orange-100 text-orange-600'
-                    : 'hover:bg-accent text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <ArrowUp className="w-5 h-5" />
-              </button>
-              
-              <span className={`font-semibold ${
-                netVotes > 0 ? 'text-orange-600' : 
-                netVotes < 0 ? 'text-blue-600' : 
-                'text-muted-foreground'
-              }`}>
-                {netVotes}
-              </span>
-              
-              <button
-                onClick={() => handleVote('down')}
-                disabled={isVoting}
-                className={`p-2 rounded-lg transition-colors ${
-                  userVote === 'down'
-                    ? 'bg-blue-100 text-blue-600'
-                    : 'hover:bg-accent text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <ArrowDown className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Main Content */}
-            <div className="flex-1 min-w-0">
-                {/* Post Meta */}
-                <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-                  <Link
-                    href={`/user/forum/${post.forum_id}`}
-                    className="font-medium hover:text-foreground"
-                  >
-                    r/{post.forum_topic}
-                  </Link>
-                  <span>•</span>
-                  <span>Posted by u/{post.username || 'Unknown'}</span>
-                  <span>•</span>
-                  <span>{formatTimeAgo(post.date_posted)}</span>
-                </div>
-
-                {isAuthor && (
-                  <div className="flex items-center gap-2">
-                    {!isEditing ? (
-                      <>
-                        <button 
-                          onClick={handleEdit}
-                          className="flex items-center gap-1 px-3 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          <Edit className="w-3 h-3" />
-                          Edit
-                        </button>
-                        <button
-                          onClick={handleDelete}
-                          disabled={isDeleting}
-                          className="flex items-center gap-1 px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                          {isDeleting ? 'Deleting...' : 'Delete'}
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button 
-                          onClick={handleSaveEdit}
-                          disabled={isSaving}
-                          className="flex items-center gap-1 px-3 py-1 text-xs text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          <Save className="w-3 h-3" />
-                          {isSaving ? 'Saving...' : 'Save'}
-                        </button>
-                        <button
-                          onClick={handleCancelEdit}
-                          disabled={isSaving}
-                          className="flex items-center gap-1 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          <X className="w-3 h-3" />
-                          Cancel
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
+        <div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
+          {/* Mobile Layout */}
+          <div className="block sm:hidden">
+            {/* Post Header - Mobile */}
+            <div className="p-4 border-b border-border">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                <Link
+                  href={`/user/forum/${post.forum_id}`}
+                  className="font-medium hover:text-foreground !min-h-0"
+                >
+                  r/{post.forum_topic}
+                </Link>
+                <span>•</span>
+                <span>u/{post.username || 'Unknown'}</span>
+                <span>•</span>
+                <span>{formatTimeAgo(post.date_posted)}</span>
               </div>
 
-              {/* Post Title */}
+              {/* Post Title - Mobile */}
               {isEditing ? (
                 <input
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full text-2xl font-bold text-foreground mb-4 p-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full text-lg font-bold text-foreground mb-3 p-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="Post title..."
                 />
               ) : (
-                <h1 className="text-2xl font-bold text-foreground mb-4">
+                <h1 className="text-lg font-bold text-foreground mb-3">
                   {post.title}
                 </h1>
               )}
 
-              {/* Post Content */}
+              {/* Author Actions - Mobile */}
+              {isAuthor && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {!isEditing ? (
+                    <>
+                      <button 
+                        onClick={handleEdit}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                      >
+                        <Edit className="w-3 h-3" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        {isDeleting ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={handleSaveEdit}
+                        disabled={isSaving}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <Save className="w-3 h-3" />
+                        {isSaving ? 'Saving...' : 'Save'}
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        disabled={isSaving}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <X className="w-3 h-3" />
+                        Cancel
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Post Content - Mobile */}
+            <div className="p-4">
               {isEditing ? (
                 <textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full min-h-[200px] p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-vertical mb-6"
+                  className="w-full min-h-[150px] p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-vertical mb-4"
                   placeholder="Post content..."
                 />
               ) : (
-                <div className="prose prose-sm max-w-none text-foreground mb-6">
-                  <p className="whitespace-pre-wrap">{post.description}</p>
+                <div className="text-foreground mb-4">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed">{post.description}</p>
                 </div>
               )}
 
-              {/* Post Actions */}
-              <div className="flex items-center gap-4 text-sm text-muted-foreground border-t border-border pt-4">
-                <div className="flex items-center gap-1">
-                  <MessageCircle className="w-4 h-4" />
-                  <span>{post.comment_count} comments</span>
+              {/* Vote and Actions - Mobile */}
+              <div className="flex items-center justify-between pt-3 border-t border-border">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => handleVote('up')}
+                      disabled={isVoting}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        userVote === 'up'
+                          ? 'bg-orange-100 text-orange-600'
+                          : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <ArrowUp className="w-4 h-4" />
+                    </button>
+                    
+                    <span className={`text-sm font-semibold min-w-[2rem] text-center ${
+                      netVotes > 0 ? 'text-orange-600' : 
+                      netVotes < 0 ? 'text-blue-600' : 
+                      'text-muted-foreground'
+                    }`}>
+                      {netVotes}
+                    </span>
+                    
+                    <button
+                      onClick={() => handleVote('down')}
+                      disabled={isVoting}
+                      className={`p-1.5 rounded-lg transition-colors ${
+                        userVote === 'down'
+                          ? 'bg-blue-100 text-blue-600'
+                          : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <MessageCircle className="w-4 h-4" />
+                    <span className="text-sm">{post.comment_count}</span>
+                  </div>
                 </div>
-                <button className="flex items-center gap-1 hover:text-foreground transition-colors">
-                  <Share className="w-4 h-4" />
-                  <span>Share</span>
+
+                <div className="flex items-center gap-2">
+                  <button className="p-1.5 hover:bg-accent rounded-lg transition-colors">
+                    <Share className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                  <button className="p-1.5 hover:bg-accent rounded-lg transition-colors">
+                    <Bookmark className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden sm:block p-6">
+            <div className="flex gap-4">
+              {/* Vote Section - Desktop */}
+              <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                <button
+                  onClick={() => handleVote('up')}
+                  disabled={isVoting}
+                  className={`p-2 rounded-lg transition-colors ${
+                    userVote === 'up'
+                      ? 'bg-orange-100 text-orange-600'
+                      : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <ArrowUp className="w-5 h-5" />
                 </button>
-                <button className="flex items-center gap-1 hover:text-foreground transition-colors">
-                  <Bookmark className="w-4 h-4" />
-                  <span>Save</span>
+                
+                <span className={`font-semibold ${
+                  netVotes > 0 ? 'text-orange-600' : 
+                  netVotes < 0 ? 'text-blue-600' : 
+                  'text-muted-foreground'
+                }`}>
+                  {netVotes}
+                </span>
+                
+                <button
+                  onClick={() => handleVote('down')}
+                  disabled={isVoting}
+                  className={`p-2 rounded-lg transition-colors ${
+                    userVote === 'down'
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <ArrowDown className="w-5 h-5" />
                 </button>
+              </div>
+
+              {/* Main Content - Desktop */}
+              <div className="flex-1 min-w-0">
+                {/* Post Meta - Desktop */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Link
+                      href={`/user/forum/${post.forum_id}`}
+                      className="font-medium hover:text-foreground"
+                    >
+                      r/{post.forum_topic}
+                    </Link>
+                    <span>•</span>
+                    <span>Posted by u/{post.username || 'Unknown'}</span>
+                    <span>•</span>
+                    <span>{formatTimeAgo(post.date_posted)}</span>
+                  </div>
+
+                  {isAuthor && (
+                    <div className="flex items-center gap-2">
+                      {!isEditing ? (
+                        <>
+                          <button 
+                            onClick={handleEdit}
+                            className="flex items-center gap-1 px-3 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          >
+                            <Edit className="w-3 h-3" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="flex items-center gap-1 px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            {isDeleting ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button 
+                            onClick={handleSaveEdit}
+                            disabled={isSaving}
+                            className="flex items-center gap-1 px-3 py-1 text-xs text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            <Save className="w-3 h-3" />
+                            {isSaving ? 'Saving...' : 'Save'}
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            disabled={isSaving}
+                            className="flex items-center gap-1 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            <X className="w-3 h-3" />
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Post Title - Desktop */}
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="w-full text-2xl font-bold text-foreground mb-4 p-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Post title..."
+                  />
+                ) : (
+                  <h1 className="text-2xl font-bold text-foreground mb-4">
+                    {post.title}
+                  </h1>
+                )}
+
+                {/* Post Content - Desktop */}
+                {isEditing ? (
+                  <textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="w-full min-h-[200px] p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-vertical mb-6"
+                    placeholder="Post content..."
+                  />
+                ) : (
+                  <div className="prose prose-sm max-w-none text-foreground mb-6">
+                    <p className="whitespace-pre-wrap">{post.description}</p>
+                  </div>
+                )}
+
+                {/* Post Actions - Desktop */}
+                <div className="flex items-center gap-4 text-sm text-muted-foreground border-t border-border pt-4">
+                  <div className="flex items-center gap-1">
+                    <MessageCircle className="w-4 h-4" />
+                    <span>{post.comment_count} comments</span>
+                  </div>
+                  <button className="flex items-center gap-1 hover:text-foreground transition-colors">
+                    <Share className="w-4 h-4" />
+                    <span>Share</span>
+                  </button>
+                  <button className="flex items-center gap-1 hover:text-foreground transition-colors">
+                    <Bookmark className="w-4 h-4" />
+                    <span>Save</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
