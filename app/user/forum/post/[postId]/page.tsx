@@ -2,30 +2,41 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowUp, ArrowDown, MessageCircle, Share, Bookmark, Trash2, ArrowLeft } from 'lucide-react';
+import { ArrowUp, ArrowDown, MessageCircle, Share, Bookmark, Trash2, ArrowLeft, Edit, Save, X } from 'lucide-react';
 import Link from 'next/link';
 import CommentSection from '@/components/forum/CommentSection';
 import { usePost } from '@/lib/hooks/useForum';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function UserPostDetailPage() {
   const params = useParams();
   const router = useRouter();
   const postId = params.postId as string;
+  const { user } = useAuth();
   
-  const { post, loading, error } = usePost(postId, '/api/user/posts');
+  const { post, loading, error, refetch } = usePost(postId, '/api/user/posts');
   const [userVote, setUserVote] = useState<'up' | 'down' | null>(null);
   const [localUpvotes, setLocalUpvotes] = useState(0);
   const [localDownvotes, setLocalDownvotes] = useState(0);
   const [isVoting, setIsVoting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
 
   // Update local vote counts when post data loads
   useState(() => {
     if (post) {
       setLocalUpvotes(post.upvotes || 0);
       setLocalDownvotes(post.downvotes || 0);
+      setEditTitle(post.title);
+      setEditDescription(post.description);
     }
   });
+
+  // Check if current user is the author of the post
+  const isAuthor = user && post && user.id === post.user_id;
 
   const handleVote = async (voteType: 'up' | 'down') => {
     if (isVoting || !post) return;
@@ -88,15 +99,67 @@ export default function UserPostDetailPage() {
       });
 
       if (response.ok) {
-        router.push(`/admin/forum/${post.forum_id}`);
+        router.push(`/user/forum/${post.forum_id}`);
       } else {
-        alert('Failed to delete post. Please try again.');
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to delete post. Please try again.');
       }
     } catch (error) {
       console.error('Error deleting post:', error);
       alert('Failed to delete post. Please try again.');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleEdit = () => {
+    if (!post) return;
+    setEditTitle(post.title);
+    setEditDescription(post.description);
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    if (!post) return;
+    setEditTitle(post.title);
+    setEditDescription(post.description);
+    setIsEditing(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!post || isSaving) return;
+    
+    if (!editTitle.trim() || !editDescription.trim()) {
+      alert('Title and description cannot be empty.');
+      return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: editTitle.trim(),
+          description: editDescription.trim(),
+        }),
+      });
+
+      if (response.ok) {
+        await refetch(); // Refresh the post data
+        setIsEditing(false);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to update post. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error updating post:', error);
+      alert('Failed to update post. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -210,27 +273,78 @@ export default function UserPostDetailPage() {
                   <span>{formatTimeAgo(post.date_posted)}</span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleDelete}
-                      disabled={isDeleting}
-                      className="flex items-center gap-1 px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      {isDeleting ? 'Deleting...' : 'Delete'}
-                    </button>
+                {isAuthor && (
+                  <div className="flex items-center gap-2">
+                    {!isEditing ? (
+                      <>
+                        <button 
+                          onClick={handleEdit}
+                          className="flex items-center gap-1 px-3 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          <Edit className="w-3 h-3" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={handleDelete}
+                          disabled={isDeleting}
+                          className="flex items-center gap-1 px-3 py-1 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                          {isDeleting ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={handleSaveEdit}
+                          disabled={isSaving}
+                          className="flex items-center gap-1 px-3 py-1 text-xs text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          <Save className="w-3 h-3" />
+                          {isSaving ? 'Saving...' : 'Save'}
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          disabled={isSaving}
+                          className="flex items-center gap-1 px-3 py-1 text-xs text-gray-600 hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          <X className="w-3 h-3" />
+                          Cancel
+                        </button>
+                      </>
+                    )}
                   </div>
+                )}
               </div>
 
               {/* Post Title */}
-              <h1 className="text-2xl font-bold text-foreground mb-4">
-                {post.title}
-              </h1>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full text-2xl font-bold text-foreground mb-4 p-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Post title..."
+                />
+              ) : (
+                <h1 className="text-2xl font-bold text-foreground mb-4">
+                  {post.title}
+                </h1>
+              )}
 
               {/* Post Content */}
-              <div className="prose prose-sm max-w-none text-foreground mb-6">
-                <p className="whitespace-pre-wrap">{post.description}</p>
-              </div>
+              {isEditing ? (
+                <textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full min-h-[200px] p-3 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-vertical mb-6"
+                  placeholder="Post content..."
+                />
+              ) : (
+                <div className="prose prose-sm max-w-none text-foreground mb-6">
+                  <p className="whitespace-pre-wrap">{post.description}</p>
+                </div>
+              )}
 
               {/* Post Actions */}
               <div className="flex items-center gap-4 text-sm text-muted-foreground border-t border-border pt-4">
