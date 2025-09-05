@@ -123,7 +123,7 @@ export function HeroSection() {
             {/* Main mascot card */}
             <div className="relative bg-gradient-to-br from-[#F5BE66] to-[#F5BE66]/80 rounded-3xl p-8 lg:p-12 shadow-2xl">
               <Image
-                src="/images/heart-mascot.png"
+                src="/han.png"
                 alt="Pulse Heart Pet Mascot"
                 className="w-full h-auto max-w-sm mx-auto"
                 width={250}

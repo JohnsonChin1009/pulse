@@ -1,15 +1,26 @@
-FROM node:18
+# 1) Build
+FROM node:20-alpine AS builder
+WORKDIR /app
 
-WORKDIR /usr/src/app
-
-# Copy only package.json first
 COPY package*.json ./
+RUN npm ci
 
-# Install deps inside Linux (not from Windows host)
-RUN npm install
-
-# Now copy source code
 COPY . .
+RUN npm run build
+
+# 2) Run (standalone)
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# If you use sharp, sometimes you need: RUN apk add --no-cache libc6-compat
+
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
-CMD ["npm", "run", "dev"]
+CMD ["node", "server.js"]
+
