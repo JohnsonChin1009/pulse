@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { PenLine, Check, X, LogOut } from "lucide-react";
+import { PenLine, Check, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import ProfilePictureModal from "@/components/custom/ProfilePictureModal";
@@ -23,7 +23,7 @@ interface ProfilePicture {
 }
 
 export default function AdminProfilePage() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading } = useAuth();
   const [adminData, setAdminData] = useState<AdminData | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -222,13 +222,6 @@ export default function AdminProfilePage() {
                   Manage your administrative account
                 </p>
               </div>
-              <button
-                onClick={logout}
-                className="flex items-center gap-2 px-6 py-3 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                <LogOut size={20} />
-                Logout
-              </button>
             </div>
 
             {/* Profile Section */}
@@ -252,7 +245,7 @@ export default function AdminProfilePage() {
                     </AvatarFallback>
                   </Avatar>
                   <div
-                    className="absolute bottom-2 right-2 bg-blue-500 text-white p-3 rounded-full cursor-pointer hover:bg-blue-600 transition-colors shadow-lg"
+                    className="absolute bottom-2 right-2 bg-[#F5BE66] text-white p-3 rounded-full cursor-pointer hover:bg-blue-600 transition-colors shadow-lg"
                     onClick={openPictureModal}
                   >
                     <PenLine size={16} />
@@ -323,7 +316,7 @@ export default function AdminProfilePage() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">
                       Role
                     </h3>
-                    <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg inline-block">
+                    <div className="bg-[#F5BE66] text-white px-4 py-2 rounded-lg inline-block">
                       <p className="font-medium text-lg">Admin</p>
                     </div>
                   </div>

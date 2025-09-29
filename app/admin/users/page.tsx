@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { PractitionerWithUser } from "@/app/api/admin/users/practitioner/fetch/route";
 import { PractitionerReviewDialog } from "./practitionerPreviewDialog";
+import UserProfileDialog from "./userProfileDialog";
 
 export type UserStatus = "active" | "inactive" | "suspended";
 
@@ -479,9 +480,11 @@ export default function UsersPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Eye className="w-4 h-4 mr-2" /> View Profile
-              </DropdownMenuItem>
+              <UserProfileDialog userId={user.id} userEmail={user.email}>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <Eye className="w-4 h-4 mr-2" /> View Profile
+                </DropdownMenuItem>
+              </UserProfileDialog>
               {user.id !== sessionUser?.id && (
                 <DropdownMenuItem asChild>
                   <Link
