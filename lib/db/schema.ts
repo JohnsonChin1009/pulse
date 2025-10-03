@@ -125,6 +125,7 @@ export const quests = pgTable("quests", {
   }).defaultNow(),
   expiration_date: timestamp("expiration_date", { withTimezone: true }),
   difficulty_level: varchar("difficulty_level", { length: 50 }),
+  notification_sent: boolean("notification_sent").default(false),
 });
 
 export const questCompletions = pgTable("quest_completions", {

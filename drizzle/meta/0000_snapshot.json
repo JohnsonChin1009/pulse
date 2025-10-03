@@ -1,5 +1,5 @@
 {
-  "id": "4efd4cad-c6e9-45ce-bf81-4feba4d48b1a",
+  "id": "9567b2d4-c210-4d8f-8efa-e157541a2152",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -728,6 +728,13 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": false
+        },
+        "notification_sent": {
+          "name": "notification_sent",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
         }
       },
       "indexes": {},

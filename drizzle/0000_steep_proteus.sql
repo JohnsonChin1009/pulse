@@ -94,7 +94,8 @@ CREATE TABLE "quests" (
 	"available_date" timestamp with time zone,
 	"last_updated_at" timestamp with time zone DEFAULT now(),
 	"expiration_date" timestamp with time zone,
-	"difficulty_level" varchar(50)
+	"difficulty_level" varchar(50),
+	"notification_sent" boolean DEFAULT false
 );
 
 CREATE TABLE "users" (
